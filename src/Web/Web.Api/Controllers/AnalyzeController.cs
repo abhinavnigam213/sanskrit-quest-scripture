@@ -1,9 +1,7 @@
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SanskritQuest.Main.Web.Api.Models;
-using SanskritQuest.Main.Web.Api.Services;
+using SanskritQuest.Main.Business.Contracts;
 
 namespace SanskritQuest.Main.Web.Api.Controllers;
 
@@ -12,11 +10,11 @@ namespace SanskritQuest.Main.Web.Api.Controllers;
 [Route("api/[controller]")]
 public class AnalyzeController : ControllerBase
 {
-    private readonly AIService _aiService;
+    private readonly IAnalyzeService _analyzeService;
 
-    public AnalyzeController(AIService aiService)
+    public AnalyzeController(IAnalyzeService analyzeService)
     {
-        _aiService = aiService;
+        _analyzeService = analyzeService;
     }
 
     [HttpPost]
@@ -27,10 +25,7 @@ public class AnalyzeController : ControllerBase
             return BadRequest(new { error = "Required field 'text' is missing." });
         }
 
-        var result = await _aiService.AnalyzeScriptureAsync(
-            request.Text, 
-            request.SourceContext
-        );
+        var result = await _analyzeService.AnalyzeScriptureAsync(request);
 
         return Ok(result);
     }

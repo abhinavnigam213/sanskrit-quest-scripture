@@ -1,9 +1,7 @@
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SanskritQuest.Main.Web.Api.Models;
-using SanskritQuest.Main.Web.Api.Services;
+using SanskritQuest.Main.Business.Contracts;
 
 namespace SanskritQuest.Main.Web.Api.Controllers;
 
@@ -12,11 +10,11 @@ namespace SanskritQuest.Main.Web.Api.Controllers;
 [Route("api/[controller]")]
 public class TranslateController : ControllerBase
 {
-    private readonly AIService _aiService;
+    private readonly ITranslationService _translationService;
 
-    public TranslateController(AIService aiService)
+    public TranslateController(ITranslationService translationService)
     {
-        _aiService = aiService;
+        _translationService = translationService;
     }
 
     [HttpPost]
@@ -27,12 +25,7 @@ public class TranslateController : ControllerBase
             return BadRequest(new { error = "Required fields 'text' and 'targetLang' are missing." });
         }
 
-        var result = await _aiService.TranslateTextAsync(
-            request.Text, 
-            request.SourceLang ?? "auto", 
-            request.TargetLang, 
-            request.ScriptureContext
-        );
+        var result = await _translationService.TranslateTextAsync(request);
 
         return Ok(result);
     }

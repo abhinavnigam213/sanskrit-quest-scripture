@@ -1,10 +1,16 @@
 using Microsoft.Extensions.AI;
-using SanskritQuest.Main.Web.Api.Models;
-using SanskritQuest.Main.Web.Api.Utils;
+using SanskritQuest.Main.Business.Contracts;
+using SanskritQuest.Main.Common.Utilities;
+using SanskritQuest.Main.Data.Contracts;
+using SanskritQuest.Main.Data.Providers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
-namespace SanskritQuest.Main.Web.Api.Services;
+namespace SanskritQuest.Main.Services.AIService;
 
 public class AIService
 {

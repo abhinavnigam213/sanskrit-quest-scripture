@@ -1,6 +1,7 @@
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace SanskritQuest.Main.Web.Api.Models;
+namespace SanskritQuest.Main.Data.Contracts;
 
 public record Scripture(
     [property: JsonPropertyName("id")] string Id,
@@ -20,44 +21,17 @@ public record DictionaryEntry(
     [property: JsonPropertyName("hin")] string Hin
 );
 
+public record GenericWordDetails(
+    [property: JsonPropertyName("grammar")] string Grammar,
+    [property: JsonPropertyName("eng")] string Eng,
+    [property: JsonPropertyName("hin")] string Hin
+);
+
 public record WordBreakdownItem(
     [property: JsonPropertyName("word")] string Word,
     [property: JsonPropertyName("grammar")] string? Grammar,
     [property: JsonPropertyName("meaningHindi")] string MeaningHindi,
     [property: JsonPropertyName("meaningEnglish")] string MeaningEnglish
-);
-
-public record TranslationRequest(
-    [property: JsonPropertyName("text")] string Text,
-    [property: JsonPropertyName("sourceLang")] string? SourceLang,
-    [property: JsonPropertyName("targetLang")] string TargetLang,
-    [property: JsonPropertyName("scriptureContext")] string? ScriptureContext
-);
-
-public record TranslationResponse(
-    [property: JsonPropertyName("sourceLang")] string SourceLang,
-    [property: JsonPropertyName("targetLang")] string TargetLang,
-    [property: JsonPropertyName("translatedText")] string TranslatedText,
-    [property: JsonPropertyName("explanation")] string Explanation,
-    [property: JsonPropertyName("wordBreakdown")] List<WordBreakdownItem> WordBreakdown,
-    [property: JsonPropertyName("isFallback")] bool? IsFallback
-);
-
-public record TransliterateRequest(
-    [property: JsonPropertyName("text")] string Text,
-    [property: JsonPropertyName("sourceScript")] string SourceScript,
-    [property: JsonPropertyName("targetScript")] string TargetScript
-);
-
-public record TransliterateResponse(
-    [property: JsonPropertyName("sourceScript")] string SourceScript,
-    [property: JsonPropertyName("targetScript")] string TargetScript,
-    [property: JsonPropertyName("transliteratedText")] string TransliteratedText
-);
-
-public record AnalyzeRequest(
-    [property: JsonPropertyName("text")] string Text,
-    [property: JsonPropertyName("sourceContext")] string? SourceContext
 );
 
 public record ScriptureAnalyzeResponse(

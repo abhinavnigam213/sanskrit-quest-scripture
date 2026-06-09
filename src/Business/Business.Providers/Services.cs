@@ -1,26 +1,39 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using SanskritQuest.Main.Web.Api.Services;
+using System.Threading.Tasks;
+using SanskritQuest.Main.Business.Contracts;
+using SanskritQuest.Main.Data.Contracts;
+using SanskritQuest.Main.Data.Providers;
+using SanskritQuest.Main.Services.AIService;
 
-namespace SanskritQuest.Main.Web.Api.Controllers;
+namespace SanskritQuest.Main.Business.Providers;
 
-[Authorize]
-[ApiController]
-[Route("api/[controller]")]
-public class DictionaryController : ControllerBase
+public class ScriptureService : IScriptureService
 {
     private readonly DataService _dataService;
 
-    public DictionaryController(DataService dataService)
+    public ScriptureService(DataService dataService)
     {
         _dataService = dataService;
     }
 
-    [HttpGet]
-    public IActionResult SearchDictionary([FromQuery] string? word)
+    public List<Scripture> GetPopularScriptures()
+    {
+        return _dataService.PopularScriptures;
+    }
+}
+
+public class DictionaryService : IDictionaryService
+{
+    private readonly DataService _dataService;
+
+    public DictionaryService(DataService dataService)
+    {
+        _dataService = dataService;
+    }
+
+    public object GetDictionaryData(string? word)
     {
         if (!string.IsNullOrEmpty(word))
         {
@@ -28,7 +41,7 @@ public class DictionaryController : ControllerBase
 
             if (cleanWord == "all" || cleanWord == "al")
             {
-                return Ok(new Dictionary<string, object>
+                return new Dictionary<string, object>
                 {
                     ["Vedas"] = _dataService.VedasDict,
                     ["Upanishads"] = _dataService.UpanishadsDict,
@@ -36,7 +49,7 @@ public class DictionaryController : ControllerBase
                     ["Ramayana"] = _dataService.RamayanaDict,
                     ["Puranas"] = _dataService.PuranasDict,
                     ["all"] = _dataService.SpecializedDictionary
-                });
+                };
             }
 
             // Exact match
@@ -46,12 +59,12 @@ public class DictionaryController : ControllerBase
 
             if (exactMatch.Key != null)
             {
-                return Ok(new Dictionary<string, object>
+                return new Dictionary<string, object>
                 {
                     ["word"] = exactMatch.Key,
                     ["found"] = true,
                     ["entry"] = exactMatch.Value
-                });
+                };
             }
 
             // Partial match
@@ -63,25 +76,25 @@ public class DictionaryController : ControllerBase
 
             if (partialMatches.Count > 0)
             {
-                return Ok(new Dictionary<string, object>
+                return new Dictionary<string, object>
                 {
                     ["word"] = word,
                     ["found"] = true,
                     ["message"] = $"Specific term not found, but found {partialMatches.Count} matching entry/entries.",
                     ["matches"] = partialMatches
-                });
+                };
             }
 
-            return NotFound(new Dictionary<string, object>
+            return new Dictionary<string, object>
             {
                 ["word"] = word,
                 ["found"] = false,
                 ["message"] = $"Word \"{word}\" not found in our specialized scriptures dictionary. Try querying \"all\" to retrieve all entries.",
                 ["availableCategories"] = new[] { "Vedas", "Upanishads", "Gita", "Ramayana", "Puranas" }
-            });
+            };
         }
 
-        return Ok(new Dictionary<string, object>
+        return new Dictionary<string, object>
         {
             ["Vedas"] = _dataService.VedasDict,
             ["Upanishads"] = _dataService.UpanishadsDict,
@@ -89,6 +102,63 @@ public class DictionaryController : ControllerBase
             ["Ramayana"] = _dataService.RamayanaDict,
             ["Puranas"] = _dataService.PuranasDict,
             ["all"] = _dataService.SpecializedDictionary
-        });
+        };
+    }
+}
+
+public class TranslationService : ITranslationService
+{
+    private readonly AIService _aiService;
+
+    public TranslationService(AIService aiService)
+    {
+        _aiService = aiService;
+    }
+
+    public Task<TranslationResponse> TranslateTextAsync(TranslationRequest request)
+    {
+        return _aiService.TranslateTextAsync(
+            request.Text,
+            request.SourceLang ?? "auto",
+            request.TargetLang,
+            request.ScriptureContext
+        );
+    }
+}
+
+public class TransliterateService : ITransliterateService
+{
+    private readonly AIService _aiService;
+
+    public TransliterateService(AIService aiService)
+    {
+        _aiService = aiService;
+    }
+
+    public Task<TransliterateResponse> TransliterateTextAsync(TransliterateRequest request)
+    {
+        return _aiService.TransliterateTextAsync(
+            request.Text,
+            request.SourceScript,
+            request.TargetScript
+        );
+    }
+}
+
+public class AnalyzeService : IAnalyzeService
+{
+    private readonly AIService _aiService;
+
+    public AnalyzeService(AIService aiService)
+    {
+        _aiService = aiService;
+    }
+
+    public Task<ScriptureAnalyzeResponse> AnalyzeScriptureAsync(AnalyzeRequest request)
+    {
+        return _aiService.AnalyzeScriptureAsync(
+            request.Text,
+            request.SourceContext
+        );
     }
 }

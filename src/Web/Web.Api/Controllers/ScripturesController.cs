@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SanskritQuest.Main.Web.Api.Services;
+using SanskritQuest.Main.Business.Contracts;
 
 namespace SanskritQuest.Main.Web.Api.Controllers;
 
@@ -11,16 +9,16 @@ namespace SanskritQuest.Main.Web.Api.Controllers;
 [Route("api/[controller]")]
 public class ScripturesController : ControllerBase
 {
-    private readonly DataService _dataService;
+    private readonly IScriptureService _scriptureService;
 
-    public ScripturesController(DataService dataService)
+    public ScripturesController(IScriptureService scriptureService)
     {
-        _dataService = dataService;
+        _scriptureService = scriptureService;
     }
 
     [HttpGet]
     public IActionResult GetPopularScriptures()
     {
-        return Ok(_dataService.PopularScriptures);
+        return Ok(_scriptureService.GetPopularScriptures());
     }
 }
