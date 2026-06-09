@@ -46,7 +46,7 @@ Project - Root Folder
 ├── metadata.json               # AI Studio application metadata
 ├── package.json                # Root dev scripts (unified concurrently runner)
 ├── PHASE_2_DESIGN.md           # Phase 2 architecture reference (RAG, pgvector, cloud)
-├── SanskritQuest.Main.slnx     # .NET solution file
+├── SanskritQuest.slnx     # .NET solution file
 └── README.md                   # This file
 ```
 
@@ -262,7 +262,7 @@ COPY --from=server-build /app/publish .
 # Copy built React files to wwwroot for ASP.NET to serve statically
 COPY --from=client-build /app/dist ./wwwroot
 
-ENTRYPOINT ["dotnet", "SanskritQuest.Main.Web.Api.dll"]
+ENTRYPOINT ["dotnet", "SanskritQuest.Web.Api.dll"]
 ```
 
 ---

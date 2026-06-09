@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using SanskritQuest.Main.Data.Contracts;
+using SanskritQuest.Data.Contracts;
 
-namespace SanskritQuest.Main.Business.Contracts;
+namespace SanskritQuest.Business.Contracts;
 
 public interface IScriptureService
 {

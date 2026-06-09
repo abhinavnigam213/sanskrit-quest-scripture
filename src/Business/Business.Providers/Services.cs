@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using SanskritQuest.Main.Business.Contracts;
-using SanskritQuest.Main.Data.Contracts;
-using SanskritQuest.Main.Data.Providers;
-using SanskritQuest.Main.Services.AIService;
+using SanskritQuest.Business.Contracts;
+using SanskritQuest.Data.Contracts;
+using SanskritQuest.Data.Providers;
+using SanskritQuest.Services.AIService;
 
-namespace SanskritQuest.Main.Business.Providers;
+namespace SanskritQuest.Business.Providers;
 
 public class ScriptureService : IScriptureService
 {

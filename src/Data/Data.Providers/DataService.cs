@@ -1,11 +1,11 @@
-using SanskritQuest.Main.Data.Contracts;
+using SanskritQuest.Data.Contracts;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-namespace SanskritQuest.Main.Data.Providers;
+namespace SanskritQuest.Data.Providers;
 
 public class DataService
 {

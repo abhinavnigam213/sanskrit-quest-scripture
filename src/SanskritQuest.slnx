@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/Business/" />
+  <Folder Name="/Common/" />
+  <Folder Name="/Data/" />
+  <Folder Name="/Services/" />
+  <Folder Name="/Web/" />
+  <Project Path="Business/Business.Contracts/Business.Contracts.csproj" Folder="/Business/" />
+  <Project Path="Business/Business.Providers/Business.Providers.csproj" Folder="/Business/" />
+  <Project Path="Common/Common.Configuration/Common.Configuration.csproj" Folder="/Common/" />
+  <Project Path="Common/Common.Http/Common.Http.csproj" Folder="/Common/" />
+  <Project Path="Common/Common.Security/Common.Security.csproj" Folder="/Common/" />
+  <Project Path="Common/Common.Utilities/Common.Utilities.csproj" Folder="/Common/" />
+  <Project Path="Data/Data.Contracts/Data.Contracts.csproj" Folder="/Data/" />
+  <Project Path="Data/Data.Providers/Data.Providers.csproj" Folder="/Data/" />
+  <Project Path="Services/Services.AIService/Services.AIService.csproj" Folder="/Services/" />
+  <Project Path="Web/Web.Api/Web.Api.csproj" Folder="/Web/" />
+</Solution>
