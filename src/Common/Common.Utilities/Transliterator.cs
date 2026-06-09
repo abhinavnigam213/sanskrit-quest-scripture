@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SanskritQuest.Main.Web.Api.Utils;
+namespace SanskritQuest.Main.Common.Utilities;
 
 public static class Transliterator
 {

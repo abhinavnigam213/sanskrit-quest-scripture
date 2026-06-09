@@ -1,12 +1,11 @@
+using SanskritQuest.Main.Data.Contracts;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using SanskritQuest.Main.Web.Api.Models;
 
-namespace SanskritQuest.Main.Web.Api.Services;
+namespace SanskritQuest.Main.Data.Providers;
 
 public class DataService
 {
@@ -140,9 +139,3 @@ public class DataService
         return "./DataFiles";
     }
 }
-
-public record GenericWordDetails(
-    [property: JsonPropertyName("grammar")] string Grammar,
-    [property: JsonPropertyName("eng")] string Eng,
-    [property: JsonPropertyName("hin")] string Hin
-);

@@ -18,6 +18,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Business\Business.Contracts\Business.Contracts.csproj" />
+    <ProjectReference Include="..\..\Business\Business.Providers\Business.Providers.csproj" />
+    <ProjectReference Include="..\..\Common\Common.Configuration\Common.Configuration.csproj" />
+    <ProjectReference Include="..\..\Common\Common.Security\Common.Security.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="DataFiles\*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
