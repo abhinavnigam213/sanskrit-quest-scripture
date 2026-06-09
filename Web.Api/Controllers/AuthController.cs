@@ -42,7 +42,30 @@ public class AuthController : ControllerBase
         var expectedClientId = _configuration["AuthSettings:ClientId"];
         var expectedClientSecret = _configuration["AuthSettings:ClientSecret"];
 
-        if (request.ClientId != expectedClientId || request.ClientSecret != expectedClientSecret)
+        bool isValid = false;
+        if (!string.IsNullOrEmpty(expectedClientId) && request.ClientId == expectedClientId && request.ClientSecret == expectedClientSecret)
+        {
+            isValid = true;
+        }
+        else
+        {
+            var clientsSection = _configuration.GetSection("AuthSettings:Clients");
+            if (clientsSection.Exists())
+            {
+                foreach (var client in clientsSection.GetChildren())
+                {
+                    var cid = client["ClientId"];
+                    var csec = client["ClientSecret"];
+                    if (!string.IsNullOrEmpty(cid) && !string.IsNullOrEmpty(csec) && request.ClientId == cid && request.ClientSecret == csec)
+                    {
+                        isValid = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!isValid)
         {
             return Unauthorized(new { error = "Invalid Client ID or Client Secret configuration." });
         }
