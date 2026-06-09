@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/Web/" />
+  <Folder Name="/Web/Web.Api/" />
+  <Folder Name="/Web/Web.Client/" />
+  <Project Path="Web.Api/Web.Api.csproj" Folder="/Web/Web.Api/" />
+</Solution>

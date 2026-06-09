@@ -1,0 +1,6 @@
+{
+  "name": "Sanskrit Quest",
+  "description": "Translates and transliterates Hindu scriptures like Vedas, Upanishads, and the Bhagavad Gita between Sanskrit, Hindi, and English with grammatical breakdown APIs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

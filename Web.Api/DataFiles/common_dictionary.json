@@ -1,0 +1,122 @@
+{
+  "नमः": {
+    "grammar": "Noun (Nominative)",
+    "eng": "salutation / bow",
+    "hin": "प्रणाम / नमस्कार"
+  },
+  "ॐ": {
+    "grammar": "Sacred Pranava syllable",
+    "eng": "the primordial cosmic sound",
+    "hin": "परम तत्व का प्रतीक प्रणव ध्वनि"
+  },
+  "शान्तिः": {
+    "grammar": "Noun (Nominative Sg.)",
+    "eng": "peace, absolute tranquility",
+    "hin": "शान्ति और परम संतोष"
+  },
+  "शान्ति": {
+    "grammar": "Noun (Base)",
+    "eng": "peace",
+    "hin": "शान्ति"
+  },
+  "सत्यम्": {
+    "grammar": "Noun (Accusative/Nominative)",
+    "eng": "truth, reality, existence",
+    "hin": "सत्य / सनातन सच"
+  },
+  "ज्ञानम्": {
+    "grammar": "Noun (Accusative/Nominative)",
+    "eng": "pure spiritual knowledge / wisdom",
+    "hin": "आनंत ज्ञान / ज्ञान मार्ग"
+  },
+  "आनन्द": {
+    "grammar": "Noun (Base)",
+    "eng": "unbound absolute bliss",
+    "hin": "दिव्य आनंद / परमानंद"
+  },
+  "योग": {
+    "grammar": "Noun (Base)",
+    "eng": "divine union / integration",
+    "hin": "चित्त वृत्ति निरोध / योग"
+  },
+  "कर्म": {
+    "grammar": "Noun (Base)",
+    "eng": "action, dedicated deed",
+    "hin": "कर्तव्य कर्म / सेवा"
+  },
+  "धर्म": {
+    "grammar": "Noun (Base)",
+    "eng": "righteousness, cosmic order, duty",
+    "hin": "सनातन धर्म / कर्तव्य"
+  },
+  "आत्मा": {
+    "grammar": "Noun (Nominative)",
+    "eng": "the divine self / inner consciousness",
+    "hin": "आत्मा / चैतन्य स्वरूप"
+  },
+  "गुरु": {
+    "grammar": "Noun (Base)",
+    "eng": "spiritual Preceptor / weight of wisdom",
+    "hin": "गुरु / अंधकार मिटाने वाला"
+  },
+  "सह": {
+    "grammar": "Indeclinable Preposition (Avyaya)",
+    "eng": "together / along with",
+    "hin": "साथ-साथ"
+  },
+  "मम": {
+    "grammar": "Genitive Pronoun (Asmad)",
+    "eng": "my / mine",
+    "hin": "मेरा / मेरी"
+  },
+  "च": {
+    "grammar": "Conjunction particle (Avyaya)",
+    "eng": "and",
+    "hin": "और"
+  },
+  "न": {
+    "grammar": "Negation particle",
+    "eng": "not / never",
+    "hin": "मत / नहीं / कदापि नहीं"
+  },
+  "इति": {
+    "grammar": "Indeclinable particle",
+    "eng": "thus / in this manner",
+    "hin": "इस प्रकार समाप्त"
+  },
+  "मिथ्या": {
+    "grammar": "Adverb / Particle",
+    "eng": "falsehood, untrue, illusory, lie",
+    "hin": "झूठ / असत्य / भ्रामक"
+  },
+  "माया": {
+    "grammar": "Noun (Base)",
+    "eng": "illusion, cosmic creative power",
+    "hin": "माया / भ्रम"
+  },
+  "जगत्": {
+    "grammar": "Noun (Base)",
+    "eng": "world, universe, transient realm",
+    "hin": "संसार / जगत"
+  },
+  "ब्रह्म": {
+    "grammar": "Noun (Base)",
+    "eng": "the absolute reality, supreme infinite consciousness",
+    "hin": "ब्रह्म / परमपिता"
+  },
+  "शिव": {
+    "grammar": "Noun (Base)",
+    "eng": "auspicious, ultimate reality, benign",
+    "hin": "कल्याणकारी / शिव"
+  },
+  "विद्या": {
+    "grammar": "Noun (Base)",
+    "eng": "knowledge, wisdom, science",
+    "hin": "विद्या / वास्तविक ज्ञान"
+  },
+  "अविद्या": {
+    "grammar": "Noun (Base)",
+    "eng": "ignorance, spiritual illusion",
+    "hin": "अविद्या / अज्ञानता"
+  }
+}

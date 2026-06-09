@@ -1,0 +1,80 @@
+# Build results
+bin/
+obj/
+build/
+dist/
+
+# NuGet
+.nuget/
+*.nupkg
+*.snupkg
+packages/
+
+# Visual Studio
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.sln.docstates
+*.sln.DotSettings
+*.sln.DotSettings.user
+
+# ReSharper
+.resharper
+.resharper.user
+_ReSharper*/
+*_i.c
+*_p.c
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.scc
+
+# Test Results
+TestResults/
+*.trx
+*.coverage
+
+# Code coverage
+coverage/
+.nyc_output/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Node modules (if using npm/yarn)
+node_modules/
+
+# IDE specific
+*.swp
+*.swo
+*~
+.vimrc
+.vscode/settings.json
+
+# Rider
+.idea/

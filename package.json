@@ -1,0 +1,19 @@
+{
+  "name": "sanskrit-quest-main",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "dotnet watch run --project Web.Api",
+    "dev:client": "npm run dev --prefix Web.Client",
+    "build": "npm run build --prefix Web.Client && dotnet publish Web.Api/Web.Api.csproj -c Release -o dist/api",
+    "start": "dotnet dist/api/SanskritQuest.Main.Web.Api.dll",
+    "lint": "npm run lint --prefix Web.Client",
+    "clean": "rm -rf Web.Client/dist dist"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
