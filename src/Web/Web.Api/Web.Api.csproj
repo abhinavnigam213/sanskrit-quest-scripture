@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>$(SolutionName).$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-    <AssemblyName>SanskritQuest.Main.Web.Api</AssemblyName>
+    <AssemblyName>SanskritQuest.Web.Api</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenAI;
 using System;
 using System.ClientModel;
-using SanskritQuest.Main.Data.Providers;
+using SanskritQuest.Data.Providers;
 
-namespace SanskritQuest.Main.Services.AIService;
+namespace SanskritQuest.Services.AIService;
 
 public static class ServiceCollectionExtensions
 {

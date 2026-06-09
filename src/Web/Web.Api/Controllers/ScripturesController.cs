@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SanskritQuest.Main.Business.Contracts;
+using SanskritQuest.Business.Contracts;
 
-namespace SanskritQuest.Main.Web.Api.Controllers;
+namespace SanskritQuest.Web.Api.Controllers;
 
 [Authorize]
 [ApiController]

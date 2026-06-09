@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace SanskritQuest.Main.Data.Contracts;
+namespace SanskritQuest.Data.Contracts;
 
 public record Scripture(
     [property: JsonPropertyName("id")] string Id,

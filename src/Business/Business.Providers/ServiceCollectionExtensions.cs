@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using SanskritQuest.Main.Business.Contracts;
+using SanskritQuest.Business.Contracts;
 
-namespace SanskritQuest.Main.Business.Providers;
+namespace SanskritQuest.Business.Providers;
 
 public static class ServiceCollectionExtensions
 {

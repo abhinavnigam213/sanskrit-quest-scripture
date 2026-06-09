@@ -1,8 +1,8 @@
 using Microsoft.Extensions.AI;
-using SanskritQuest.Main.Business.Contracts;
-using SanskritQuest.Main.Common.Utilities;
-using SanskritQuest.Main.Data.Contracts;
-using SanskritQuest.Main.Data.Providers;
+using SanskritQuest.Business.Contracts;
+using SanskritQuest.Common.Utilities;
+using SanskritQuest.Data.Contracts;
+using SanskritQuest.Data.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace SanskritQuest.Main.Services.AIService;
+namespace SanskritQuest.Services.AIService;
 
 public class AIService
 {

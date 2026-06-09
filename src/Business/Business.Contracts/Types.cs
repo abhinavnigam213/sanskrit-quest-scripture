@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using SanskritQuest.Main.Data.Contracts;
+using SanskritQuest.Data.Contracts;
 
-namespace SanskritQuest.Main.Business.Contracts;
+namespace SanskritQuest.Business.Contracts;
 
 public record TranslationRequest(
     [property: JsonPropertyName("text")] string Text,

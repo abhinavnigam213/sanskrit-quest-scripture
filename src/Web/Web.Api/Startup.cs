@@ -9,11 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using SanskritQuest.Main.Data.Providers;
-using SanskritQuest.Main.Services.AIService;
-using SanskritQuest.Main.Business.Providers;
+using SanskritQuest.Data.Providers;
+using SanskritQuest.Services.AIService;
+using SanskritQuest.Business.Providers;
 
-namespace SanskritQuest.Main.Web.Api;
+namespace SanskritQuest.Web.Api;
 
 public class Startup
 {
@@ -33,7 +33,7 @@ public class Startup
 
         // 2. Configure JWT Authentication Services
         var jwtKey = Configuration["AuthSettings:JwtKey"] ?? "SanskritQuest3.5SuperSecureJWTTokenKeyDoubleStrength999!!!";
-        var issuer = Configuration["AuthSettings:JwtIssuer"] ?? "SanskritQuest.Main.Web.Api";
+        var issuer = Configuration["AuthSettings:JwtIssuer"] ?? "SanskritQuest.Web.Api";
         var audience = Configuration["AuthSettings:JwtAudience"] ?? "SanskritQuestApp";
 
         services.AddAuthentication(options =>

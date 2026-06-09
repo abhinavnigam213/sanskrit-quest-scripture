@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace SanskritQuest.Main.Data.Providers;
+namespace SanskritQuest.Data.Providers;
 
 public static class ServiceCollectionExtensions
 {
