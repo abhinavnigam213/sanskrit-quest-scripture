@@ -14,32 +14,43 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
 
 let cachedToken: string | null = null;
 let tokenExpiry: number | null = null; // timestamp in ms
+let tokenPromise: Promise<string | null> | null = null;
 
 /**
  * Fetches a new JWT token from the C# Auth controller.
  */
 async function fetchNewToken(): Promise<string | null> {
-  try {
-    const response = await axios.post('/api/auth/token', {
-      clientId: CLIENT_ID,
-      clientSecret: CLIENT_SECRET,
-    }, {
-      // Prevent recursive interceptor execution on this auth request
-      headers: {
-        'X-Skip-Auth': 'true'
-      }
-    });
-
-    if (response.status === 200 && response.data?.token) {
-      cachedToken = response.data.token;
-      tokenExpiry = new Date(response.data.expiresAt).getTime();
-      console.log('[Auth] Successfully acquired new JWT Bearer token.');
-      return cachedToken;
-    }
-  } catch (error) {
-    console.error('[Auth] Failed to retrieve JWT Bearer token:', error);
+  if (tokenPromise) {
+    return tokenPromise;
   }
-  return null;
+
+  tokenPromise = (async () => {
+    try {
+      const response = await axios.post('/api/auth/token', {
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECRET,
+      }, {
+        // Prevent recursive interceptor execution on this auth request
+        headers: {
+          'X-Skip-Auth': 'true'
+        }
+      });
+
+      if (response.status === 200 && response.data?.token) {
+        cachedToken = response.data.token;
+        tokenExpiry = new Date(response.data.expiresAt).getTime();
+        console.log('[Auth] Successfully acquired new JWT Bearer token.');
+        return cachedToken;
+      }
+    } catch (error) {
+      console.error('[Auth] Failed to retrieve JWT Bearer token:', error);
+    } finally {
+      tokenPromise = null;
+    }
+    return null;
+  })();
+
+  return tokenPromise;
 }
 
 /**
