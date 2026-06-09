@@ -61,6 +61,7 @@ coverage/
 .env.local
 .env.*.local
 !.env.example
+Web.Api/appsettings.Development.json
 
 # OS-specific
 .DS_Store
