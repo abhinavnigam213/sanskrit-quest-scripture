@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>$(SolutionName).$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Business.Contracts\Business.Contracts.csproj" />
+    <ProjectReference Include="..\..\Data\Data.Providers\Data.Providers.csproj" />
+    <ProjectReference Include="..\..\Services\Services.AIService\Services.AIService.csproj" />
+    <ProjectReference Include="..\..\Common\Common.Utilities\Common.Utilities.csproj" />
+  </ItemGroup>
+
+</Project>

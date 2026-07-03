@@ -1,0 +1,308 @@
+{
+  "ऋत": {
+    "category": "Vedas",
+    "grammar": "Vedic Cosmic Order (Noun, Neuter)",
+    "eng": "Cosmic, moral, and natural order of the universe; universal truth holding creation together",
+    "hin": "ऋत - ब्रह्मांडीय, प्राकृतिक और नैतिक नियम; सत्य जो पूरी सृष्टि को संचालित करता है"
+  },
+  "यज्ञ": {
+    "category": "Vedas",
+    "grammar": "Devotional Sacrifice (Noun, Masculine)",
+    "eng": "Sacred ritual fire offering, worship, selflessness, dedicated service to humanity, sharing of gifts",
+    "hin": "यज्ञ - देवपूजा, हवन, निस्वार्थ समर्पण, परोपकार तथा त्याग की वैदिक प्रक्रिया"
+  },
+  "सोम": {
+    "category": "Vedas",
+    "grammar": "Sacred Herb / Divine Elixir (Noun, Masculine)",
+    "eng": "Pristine elixir of vitality, the sacred plant of the sages, lunar energy of spiritual bliss",
+    "hin": "सोम - देव रस, सोमरस, वनस्पतियों का राजा, अमरत्व प्रदाता पेय, चन्द्र ऊर्जा"
+  },
+  "अग्नि": {
+    "category": "Vedas",
+    "grammar": "Sacred Fire Deity (Noun, Masculine)",
+    "eng": "The divine fire, chief priest of fire sacrifice, cosmic messenger between humans and gods",
+    "hin": "अग्नि - पवित्र पावक, यज्ञ के प्रमुख पुरोहित, मनुष्य और देवताओं को जोड़ने वाले दिव्य दूत"
+  },
+  "ऋषि": {
+    "category": "Vedas",
+    "grammar": "Divine Seer / Visionary (Noun, Masculine)",
+    "eng": "Vedic channeler who \"saw\" the sacred hymns, sage of absolute wisdom, forest-dwelling seeker",
+    "hin": "ऋषि - मंत्रद्रष्टा, सत्य के खोजी, परम ज्ञान संपन्न वनवासी मुनि"
+  },
+  "मन्त्र": {
+    "category": "Vedas",
+    "grammar": "Sacred Sonic Code (Noun, Masculine)",
+    "eng": "Spiritual sound formula, sacred chant, phonetic key facilitating union of the individual and cosmic mind",
+    "hin": "मन्त्र - आध्यात्मिक शक्ति से परिपूर्ण ध्वनि-संकेत, ध्यान और स्तुति का यंत्र"
+  },
+  "इन्द्र": {
+    "category": "Vedas",
+    "grammar": "Deity of Senses / Thunder (Noun, Masculine)",
+    "eng": "The lord of the senses, ruler of celestial realms, bringer of life-giving rain, heroic energy",
+    "hin": "इन्द्र - देवराज, इन्द्रियों के शासक, वज्रधारी, वृष्टि और आत्मबल के प्रदाता"
+  },
+  "वरुण": {
+    "category": "Vedas",
+    "grammar": "Lord of Order & Waters (Noun, Masculine)",
+    "eng": "Watcher of ethics and gravity, regent of celestial waters, guardian of oaths and cosmic law",
+    "hin": "वरुण - नैतिक नियमों के संरक्षक, ब्रह्मांडीय नियम और जल के शासक देव"
+  },
+  "अदिति": {
+    "category": "Vedas",
+    "grammar": "Primal Infinity (Noun, Feminine)",
+    "eng": "Limitless cosmic space, divine master mother of the Adityas (solar gods), infinite primal energy",
+    "hin": "अदिति - असीमता, देवमाता, अनंतता और प्रकृति की मूल जननी"
+  },
+  "पुरुष": {
+    "category": "Vedas",
+    "grammar": "The Cosmic Being (Noun, Masculine)",
+    "eng": "The primeval supreme cosmic personality, all-pervading consciousness from whom the universe manifests",
+    "hin": "पुरुष - विराट पुरुष, परब्रह्म, सम्पूर्ण सृष्टि में व्याप्त परम चेतना"
+  },
+  "आत्मन्": {
+    "category": "Upanishads",
+    "grammar": "Supreme Self (Noun, Masculine)",
+    "eng": "The innermost immortal individual soul, identical with Brahman (collective absolute consciousness)",
+    "hin": "आत्मन् - आत्मा, जीवात्मा, व्यक्ति का शाश्वत अमर स्वरूप जो ब्रह्म के समान है"
+  },
+  "ब्रह्मन्": {
+    "category": "Upanishads",
+    "grammar": "The Absolute Reality (Noun, Neuter)",
+    "eng": "The unchanging, infinite, immanent, and transcendent source of all existence",
+    "hin": "ब्रह्मन् - परब्रह्म, सर्वव्यापी, अनंत, निराकार परम सत्य और सम्पूर्ण अस्तित्व का मूल"
+  },
+  "माया": {
+    "category": "Upanishads",
+    "grammar": "Cosmic Illusion (Noun, Feminine)",
+    "eng": "The creative concealing power that projects the relative universe as real, the veil of duality",
+    "hin": "माया - अज्ञानता और भ्रम की वह शक्ति जो परिवर्तनशील संसार को सत्य के रूप में दिखाती है"
+  },
+  "प्रज्ञान": {
+    "category": "Upanishads",
+    "grammar": "Supreme Intuitive Intellect (Noun, Neuter)",
+    "eng": "Pure divine awareness, transcendent spiritual intelligence (\"Prajnanam Brahma\")",
+    "hin": "प्रज्ञान - उत्कृष्ट चैतन्य, विशुद्ध ज्ञान, ब्रह्मबोध युक्त बुद्धि"
+  },
+  "नेति": {
+    "category": "Upanishads",
+    "grammar": "Philosophical Negation Formula (Avyaya)",
+    "eng": "\"Not this, not that\" — Upanishadic methodology of excluding all objective forms to locate the self",
+    "hin": "नेति - \"यह भी नहीं, वह भी नहीं\" — ब्रह्म के असीम स्वरूप को समझाने की निषेधात्मक पद्धति"
+  },
+  "तुरीय": {
+    "category": "Upanishads",
+    "grammar": "The Fourth State (Noun, Neuter)",
+    "eng": "The state of pure, quiet subjective awareness transcending waking, dreaming, and deep sleep states",
+    "hin": "तुरीय - जाग्रत, स्वप्न और सुषुप्ति से परे शुद्ध चैतन्य की चौथी परम आनंदमयी अवस्था"
+  },
+  "सत्": {
+    "category": "Upanishads",
+    "grammar": "Pure Existence (Noun, Neuter)",
+    "eng": "Absolute Beingness, that which remains unmodified across past, present, and future",
+    "hin": "सत् - त्रिकालाबाधित शाश्वत सत्ता, विशुद्ध अस्तित्व"
+  },
+  "चित्": {
+    "category": "Upanishads",
+    "grammar": "Pure Awareness (Noun, Neuter)",
+    "eng": "Self-luminous consciousness that illuminates all thoughts, representations, and states of mind",
+    "hin": "चित् - चेतना, दृश्य और विचार को प्रकाशित करने वाला चैतन्य प्रकाश"
+  },
+  "आनन्द": {
+    "category": "Upanishads",
+    "grammar": "Transcendent Spiritual Bliss (Noun, Nisargatah)",
+    "eng": "Non-dual, causeless spiritual joy that lies at the core of the self, superior to material pleasure",
+    "hin": "आनन्द - वासना-रहित अनन्त आत्मिक सुख, ब्रह्मानंद"
+  },
+  "मुमुक्षु": {
+    "category": "Upanishads",
+    "grammar": "Seeker of Liberation (Noun, Masculine)",
+    "eng": "One who possesses intense desire for spiritual liberation (Moksha) from the cycle of rebirth",
+    "hin": "मुमुक्षु - मोक्ष प्राप्त करने की परम इच्छा रखने वाला गंभीर साधक"
+  },
+  "योगः": {
+    "category": "Gita",
+    "grammar": "Equanimity / Divine Union (Noun, Masculine)",
+    "eng": "Equanimity of mind in success and failure; union of individual consciousness with the Divine",
+    "hin": "योग - समत्व भाव (सुख-दुःख में समानता), ईश्वर से जीवात्मा का वास्तविक मिलन"
+  },
+  "कर्म": {
+    "category": "Gita",
+    "grammar": "Duty / Dedicated Action (Noun, Neuter)",
+    "eng": "Obligatory action performed as an offering to God without craving the fruits (Nishkama Karma)",
+    "hin": "कर्म - फल की इच्छा से रहित होकर लोकहित या ईश्वरावलोकन में किया गया कर्म"
+  },
+  "स्थितप्रज्ञ": {
+    "category": "Gita",
+    "grammar": "Of Steady Wisdom (Noun, Masculine)",
+    "eng": "A sage of settled intelligence who is freed from desire, fear, anger, and is established in self-knowledge",
+    "hin": "स्थितप्रज्ञ - स्थिर बुद्धि वाला वह स्थिर साधक जो आकांक्षा, भय और क्रोध से सर्वथा मुक्त है"
+  },
+  "धर्मक्षेत्र": {
+    "category": "Gita",
+    "grammar": "Sacred Field of Virtue (Noun, Neuter)",
+    "eng": "The holy pilgrimage ground where righteous battles are waged, the battlefield of life",
+    "hin": "धर्मक्षेत्र - धर्म की भूमि, सत्य और असत्य के न्याय युद्ध की विख्यात कुरुक्षेत्र स्थली"
+  },
+  "गुणाः": {
+    "category": "Gita",
+    "grammar": "Qualities of Nature (Noun, Masculine plural)",
+    "eng": "The threefold attributes of primordial nature: Sattva (purity), Rajas (activity/passion), and Tamas (inertia)",
+    "hin": "गुण - प्रकृति के तीन आदि तत्व: प्रकाशक (सत्त्व), प्रेरक (रजस्), एवं अवरोधक (तमस्)"
+  },
+  "भक्तिः": {
+    "category": "Gita",
+    "grammar": "Transcendent Devotion (Noun, Feminine)",
+    "eng": "Pure, absolute, unalloyed love of God, complete surrender to the cosmic source of affection",
+    "hin": "भक्ति - प्रभु के प्रति अनन्य प्रेम, श्रद्धा, और सम्पूर्ण आत्मसमर्पण"
+  },
+  "शरणम्": {
+    "category": "Gita",
+    "grammar": "Ultimate Refuge (Noun, Neuter)",
+    "eng": "Seeking sanctuary and absolute safety under the benevolent command of the Lord within (\"sharanam vraja\")",
+    "hin": "शरणम् - आश्रय, सर्व-समर्पण कर प्रभु की शरण प्राप्त करना"
+  },
+  "सत्त्व": {
+    "category": "Gita",
+    "grammar": "Purity/Harmony Attribute (Noun, Neuter)",
+    "eng": "The quality of light, wisdom, cleanliness, peaceful harmony, and ethical goodness",
+    "hin": "सत्त्व - मन की निर्मलता, ज्ञान, शांति, और सात्विकता का परिचायक गुण"
+  },
+  "रजस्": {
+    "category": "Gita",
+    "grammar": "Passion/Activity Attribute (Noun, Neuter)",
+    "eng": "The quality of motion, fierce ambition, desire, competitive action, and attachment",
+    "hin": "रजस् - चंचलता, राग, इच्छा, स्पर्धा और कर्मों की ओर धकेलने वाला प्रेरक गुण"
+  },
+  "तमस": {
+    "category": "Gita",
+    "grammar": "Inertia/Darkness Attribute (Noun, Neuter)",
+    "eng": "The quality of lethargy, ignorance, confusion, delusion, sleep, and physical heaviness",
+    "hin": "तमस - अज्ञानता, अंधकार, प्रमाद, आलस्य और मोह को बढ़ाने वाला गुण"
+  },
+  "मर्यादा": {
+    "category": "Ramayana",
+    "grammar": "Noble Boundary/Decorum (Noun, Feminine)",
+    "eng": "Ethical constraints of conduct, ideal protocol of roles, absolute adherence to moral law",
+    "hin": "मर्यादा - सदाचार और शिष्टाचार का उच्चतम नियम, धर्मानुकूल आचरण की सीमा"
+  },
+  "अयोध्या": {
+    "category": "Ramayana",
+    "grammar": "Invincible Domain (Noun, Feminine)",
+    "eng": "The impregnable city where there is no conflict, disputes or battle; capital of Maryada Purushottama",
+    "hin": "अयोध्या - जिसके विरुद्ध शत्रुओं द्वारा युद्ध न जीता जा सके, प्रभु राम की पावन जन्मस्थली"
+  },
+  "satyavrat": {
+    "category": "Ramayana",
+    "grammar": "Vow of Truth Practitioner (Noun, Masculine)",
+    "eng": "One whose life is firmly anchored in the vow of speaking and acting the absolute truth",
+    "hin": "सत्यव्रत - सत्य के सतत पालन का अटूट व्रत लेने वाला"
+  },
+  "सत्यव्रत": {
+    "category": "Ramayana",
+    "grammar": "Vow of Truth Practitioner (Noun, Masculine)",
+    "eng": "One whose life is firmly anchored in the vow of speaking and acting the absolute truth",
+    "hin": "सत्यव्रत - सत्य के सतत पालन का अटूट व्रत लेने वाला"
+  },
+  "भक्त": {
+    "category": "Ramayana",
+    "grammar": "Loving Devotee (Noun, Masculine)",
+    "eng": "A dedicated follower whose heart beats with complete devotional resonance with the divine",
+    "hin": "भक्त - परमेश्वर के दिव्य स्वरूप की सेवा में स्वयं को लीन करने वाला"
+  },
+  "लक्ष्मण": {
+    "category": "Ramayana",
+    "grammar": "Symbol of Focus (Noun, Masculine)",
+    "eng": "Auspicious focus; the brother of Lord Rama who represents vigilance, service, and unshakeable focus",
+    "hin": "लक्ष्मण - शुभ लक्षणों से युक्त, सेवा-चेतना और अद्वितीय एकाग्रता के अधिष्ठाता"
+  },
+  "सीता": {
+    "category": "Ramayana",
+    "grammar": "Primal Earth Furrow (Noun, Feminine)",
+    "eng": "Earth-born goddess representing absolute purity, grace, silent endurance, and cosmic devotion",
+    "hin": "सीता - हल की रेखा (भूमिपुत्री), श्री राम की प्रियतमा, सहिष्णुता और पतिव्रत की प्रतीक"
+  },
+  "हनुमान्": {
+    "category": "Ramayana",
+    "grammar": "Divine Servant Messenger (Noun, Masculine)",
+    "eng": "The conqueror of senses, epitome of physical strength, intellectual genius, and humble devotion",
+    "hin": "हनुमान् - परम बलशाली, सर्वविद्या-विशारद, पवनपुत्र, दास-भाव भक्ति के चरम आदर्श"
+  },
+  "राम": {
+    "category": "Ramayana",
+    "grammar": "The Divine Joy-Giver (Noun, Masculine)",
+    "eng": "He who pleases or delights the hearts; the ethical hero king who rules by righteousness",
+    "hin": "राम - रमण कराने वाले, हृदय को आनंदित करने वाले मर्यादा पुरुषोत्तम"
+  },
+  "पितृभक्ति": {
+    "category": "Ramayana",
+    "grammar": "Filial Piety (Noun, Feminine)",
+    "eng": "Deep devotion, respect, and duty toward Parents and ancestral legacy",
+    "hin": "पितृभक्ति - माता-पिता के प्रति निश्छल आदर, श्रद्धा, एवं कर्तव्य-पालन का धर्म"
+  },
+  "भरत": {
+    "category": "Ramayana",
+    "grammar": "Sacrificing Brother (Noun, Masculine)",
+    "eng": "The brother who represents paduka worship, ruling by the sandles of Rama, absolute detachment from kingdom",
+    "hin": "भरत - त्याग और भ्रातृप्रेम के विलक्षण विग्रह, पादुका-पूजा के प्रतिष्ठाता"
+  },
+  "लीला": {
+    "category": "Puranas",
+    "grammar": "Cosmic Sport (Noun, Feminine)",
+    "eng": "The effortless, spontaneous play of Divinity creating, preserving, and updating universes",
+    "hin": "लीला - सृष्टि की रचना-विनाश की परमात्मा की आनंदमयी सहज क्रीड़ा"
+  },
+  "अवतार": {
+    "category": "Puranas",
+    "grammar": "Divine Descent (Noun, Masculine)",
+    "eng": "The materialization of divine light from formless state down to a physical capsule on Earth",
+    "hin": "अवतार - धर्मरक्षा और दुष्टों के संहार हेतु परमात्मा का भूलोक पर सशरीर अवतरण"
+  },
+  "सृष्टि": {
+    "category": "Puranas",
+    "grammar": "Manifest cosmos creation (Noun, Feminine)",
+    "eng": "The evolutionary unfolding of primordial matter and beings under divine intelligence",
+    "hin": "सृष्टि - जगत की रचना, अव्यक्त तत्वों का व्यक्त स्वरूप में आना"
+  },
+  "स्थिति": {
+    "category": "Puranas",
+    "grammar": "Maintenance/Preservation (Noun, Feminine)",
+    "eng": "The cosmic preservation phase handled by Lord Vishnu, keeping systemic order running",
+    "hin": "स्थिति - संसार का संरक्षण और सन्तुलन बनाए रखने का काल"
+  },
+  "प्रलय": {
+    "category": "Puranas",
+    "grammar": "Cosmic Dissolution (Noun, Masculine)",
+    "eng": "The grand dissolution of space-time elements back to their unmanifest causal womb",
+    "hin": "प्रलय - कल्प के अन्त में सृष्टि का मूल कारण में लय हो जाना"
+  },
+  "पूजा": {
+    "category": "Puranas",
+    "grammar": "Adoration/Veneration (Noun, Feminine)",
+    "eng": "The act of worship expressing intense gratitude through physical flowers, light, water, incense offerings",
+    "hin": "पूजा - इष्टदेव के प्रति सम्मान व्यक्त करने के लिए उपचारों द्वारा की जाने वाली सेवा"
+  },
+  "साधना": {
+    "category": "Puranas",
+    "grammar": "Spiritual Discipline (Noun, Feminine)",
+    "eng": "Structured path of spiritual exercises, mantra repetition, and meditative efforts targeting light realization",
+    "hin": "साधना - आत्म-साक्षात्कार की प्राप्ति हेतु निरंतर किया जाने वाला आध्यात्मिक पुरुषार्थ"
+  },
+  "शक्तिः": {
+    "category": "Puranas",
+    "grammar": "Primordial Power (Noun, Feminine)",
+    "eng": "The active divine feminine energy of God that powers the cosmos, cosmic electricity of creation",
+    "hin": "शक्ति - पराशक्ति, आद्यशक्ति, परब्रह्म की वह क्रियाशीलता जिससे समस्त चराचर संचालित है"
+  },
+  "पुराण": {
+    "category": "Puranas",
+    "grammar": "Spiritual Lore Chronicle (Noun, Neuter)",
+    "eng": "Chronicles consisting of history, mythology, geography, cosmology, and direct spiritual insights",
+    "hin": "पुराण - प्राचीन राजाओं, ऋषियों और दिव्य गाथाओं का ज्ञानवर्धक महाग्रंथ"
+  },
+  "भक्तवत्सल": {
+    "category": "Puranas",
+    "grammar": "Nurturer of Seekers (Noun/Adjective, Masculine)",
+    "eng": "The attribute of the divine denoting deep motherly love and protection toward faithful devotees",
+    "hin": "भक्तवत्सल - भक्तों पर वात्सल्य प्रेम बरसाने वाला परमात्मा"
+  }
+}

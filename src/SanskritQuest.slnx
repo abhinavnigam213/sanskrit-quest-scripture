@@ -1,0 +1,26 @@
+<Solution>
+  <Folder Name="/Business/">
+    <Project Path="Business/Business.Contracts/Business.Contracts.csproj" />
+    <Project Path="Business/Business.Providers/Business.Providers.csproj" />
+  </Folder>
+  <Folder Name="/Common/">
+    <Project Path="Common/Common.Configuration/Common.Configuration.csproj" />
+    <Project Path="Common/Common.Http/Common.Http.csproj" />
+    <Project Path="Common/Common.Security/Common.Security.csproj" />
+    <Project Path="Common/Common.Utilities/Common.Utilities.csproj" />
+  </Folder>
+  <Folder Name="/Data/">
+    <Project Path="Data/Data.Contracts/Data.Contracts.csproj" />
+    <Project Path="Data/Data.Providers/Data.Providers.csproj" />
+    <Project Path="Data/Data.TestConsole/Data.TestConsole.csproj" Id="097d23f9-3356-4848-b346-7ef50cd7d786" />
+  </Folder>
+  <Folder Name="/Services/">
+    <Project Path="Services/Services.AIService/Services.AIService.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
+  <Folder Name="/Web/">
+    <Project Path="Web/Web.Api/Web.Api.csproj" />
+  </Folder>
+</Solution>
