@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>SanskritQuest.Database.Migrations</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="dbup-postgresql" Version="5.0.40" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.0" />
+    <PackageReference Include="Npgsql" Version="9.0.2" />
+  </ItemGroup>
+
+  <!-- Embed SQL scripts in the output assembly -->
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\*.sql" />
+  </ItemGroup>
+
+  <!-- Enforce strict script naming convention at compile time -->
+  <Target Name="ValidateMigrationScriptNames" BeforeTargets="PrepareForBuild">
+    <ItemGroup>
+      <SqlScripts Include="Scripts\*.sql" />
+    </ItemGroup>
+    <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('%(SqlScripts.Filename)', '^Script\d{4}_.*$'))"
+           Text="Migration script name '%(SqlScripts.Filename)%(SqlScripts.Extension)' does not follow the required naming convention: 'Script[4-digit-number]_[Description].sql' (e.g., 'Script0001_Initial_Schema.sql')." />
+  </Target>
+</Project>
