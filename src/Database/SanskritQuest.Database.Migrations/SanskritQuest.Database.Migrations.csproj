@@ -15,17 +15,18 @@
     <PackageReference Include="Npgsql" Version="9.0.2" />
   </ItemGroup>
 
-  <!-- Embed SQL scripts in the output assembly -->
+  <!-- Embed both .sql and .psql scripts in the output assembly -->
   <ItemGroup>
+    <EmbeddedResource Include="Scripts\*.sql" />
     <EmbeddedResource Include="Scripts\*.psql" />
   </ItemGroup>
 
-  <!-- Enforce strict script naming convention at compile time -->
+  <!-- Enforce strict script naming convention at compile time for both extensions -->
   <Target Name="ValidateMigrationScriptNames" BeforeTargets="PrepareForBuild">
     <ItemGroup>
-      <SqlScripts Include="Scripts\*.psql" />
+      <SqlScripts Include="Scripts\*.sql;Scripts\*.psql" />
     </ItemGroup>
     <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('%(SqlScripts.Filename)', '^Script\d{4}_.*$'))"
-           Text="Migration script name '%(SqlScripts.Filename)%(SqlScripts.Extension)' does not follow the required naming convention: 'Script[4-digit-number]_[Description].psql' (e.g., 'Script0001_Initial_Schema.psql')." />
+           Text="Migration script name '%(SqlScripts.Filename)%(SqlScripts.Extension)' does not follow the required naming convention: 'Script[4-digit-number]_[Description].[sql/psql]' (e.g., 'Script0001_Initial_Schema.psql')." />
   </Target>
 </Project>
