@@ -41,7 +41,7 @@ namespace SanskritQuest.Database.Migrations
 
             var upgrader = DeployChanges.To
                 .PostgresqlDatabase(connectionString)
-                .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
+                .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly(), name => name.EndsWith(".psql", StringComparison.OrdinalIgnoreCase))
                 .LogToConsole()
                 .Build();
 
