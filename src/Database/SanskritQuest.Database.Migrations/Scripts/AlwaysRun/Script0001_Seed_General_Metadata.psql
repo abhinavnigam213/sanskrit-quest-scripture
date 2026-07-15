@@ -1,0 +1,30 @@
+-- Script 0002: Seed general schema lookup metadata in AlwaysRun stage
+-- ========================================================================
+-- 1. SEED: general.languages
+-- ========================================================================
+INSERT INTO general.languages (lang_code, display_name, is_transliteration) VALUES 
+('en', 'English', FALSE), 
+('hi', 'Hindi', FALSE), 
+('sa_deva', 'Sanskrit (Devanagari)', FALSE), 
+('sa_iast', 'Sanskrit (IAST)', TRUE), 
+('sa_slp1', 'Sanskrit (SLP1)', TRUE)
+ON CONFLICT (lang_code) DO UPDATE SET 
+    display_name = EXCLUDED.display_name, 
+    is_transliteration = EXCLUDED.is_transliteration;
+
+-- ========================================================================
+-- 2. SEED: general.data_sources
+-- ========================================================================
+INSERT INTO general.data_sources (source_id, source_name, base_url) VALUES 
+(1, 'HuggingFace_Gita_Dataset_V1', 'https://huggingface.co'), 
+(2, 'GitHub_Monier_Williams_JSON', 'https://github.com'),
+(3, 'SanskritQuest_Internal_ELT', 'https://sanskritquest.org'),
+(4, 'SpokenSanskrit_API', 'https://spokensanskrit.org')
+ON CONFLICT (source_id) DO UPDATE SET 
+    source_name = EXCLUDED.source_name,
+    base_url = EXCLUDED.base_url;
+
+-- ========================================================================
+-- 3. RESET SEQUENCE NUMBERS (To prevent auto-increment collisions)
+-- ========================================================================
+SELECT setval('general.data_sources_source_id_seq', COALESCE((SELECT MAX(source_id) FROM general.data_sources), 1));

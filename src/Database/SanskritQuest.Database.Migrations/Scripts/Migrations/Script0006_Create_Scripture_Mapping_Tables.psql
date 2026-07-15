@@ -1,0 +1,36 @@
+-- Script 0006: Create scripture metadata association mapping tables and lookup indexes
+-- ========================================================================
+-- 1. HIERARCHY SECT MAPPING TABLE & INDEXES
+-- ========================================================================
+CREATE TABLE scripture.hierarchy_sect_mapping (
+    hierarchy_id INT REFERENCES scripture.hierarchy(hierarchy_id) ON DELETE CASCADE,
+    sect_id INT REFERENCES scripture.sects(sect_id) ON DELETE CASCADE,
+    PRIMARY KEY (hierarchy_id, sect_id)
+);
+
+CREATE INDEX idx_hierarchy_sect_h_id ON scripture.hierarchy_sect_mapping(hierarchy_id);
+CREATE INDEX idx_hierarchy_sect_s_id ON scripture.hierarchy_sect_mapping(sect_id);
+
+-- ========================================================================
+-- 2. HIERARCHY PHILOSOPHY MAPPING TABLE & INDEXES
+-- ========================================================================
+CREATE TABLE scripture.hierarchy_philosophy_mapping (
+    hierarchy_id INT REFERENCES scripture.hierarchy(hierarchy_id) ON DELETE CASCADE,
+    philosophy_id INT REFERENCES scripture.philosophies(philosophy_id) ON DELETE CASCADE,
+    PRIMARY KEY (hierarchy_id, philosophy_id)
+);
+
+CREATE INDEX idx_hierarchy_philosophy_h_id ON scripture.hierarchy_philosophy_mapping(hierarchy_id);
+CREATE INDEX idx_hierarchy_philosophy_p_id ON scripture.hierarchy_philosophy_mapping(philosophy_id);
+
+-- ========================================================================
+-- 3. VERSE DEITY MAPPING TABLE & INDEXES
+-- ========================================================================
+CREATE TABLE scripture.verse_deity_mapping (
+    verse_id INT REFERENCES scripture.verses(verse_id) ON DELETE CASCADE,
+    deity_id INT REFERENCES scripture.deities(deity_id) ON DELETE CASCADE,
+    PRIMARY KEY (verse_id, deity_id)
+);
+
+CREATE INDEX idx_verse_deity_v_id ON scripture.verse_deity_mapping(verse_id);
+CREATE INDEX idx_verse_deity_d_id ON scripture.verse_deity_mapping(deity_id);

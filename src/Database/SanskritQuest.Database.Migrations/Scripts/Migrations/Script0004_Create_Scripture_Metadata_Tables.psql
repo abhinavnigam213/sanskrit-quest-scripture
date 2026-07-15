@@ -1,0 +1,46 @@
+-- Script 0004: Create scripture metadata classification lookup tables
+CREATE TABLE scripture.categories (
+    category_id SERIAL PRIMARY KEY,
+    category_name VARCHAR(50) NOT NULL UNIQUE, -- 'Shruti', 'Smriti'
+    description scripture.localized_description NOT NULL
+);
+
+CREATE TABLE scripture.classes (
+    class_id SERIAL PRIMARY KEY,
+    category_id INT REFERENCES scripture.categories(category_id) ON DELETE RESTRICT,
+    class_name VARCHAR(100) NOT NULL UNIQUE, -- 'Veda / Upanishad', 'Itihasa (Epics)'
+    description scripture.localized_description NOT NULL
+);
+
+-- Meta-classification: Sects/Denominations
+CREATE TABLE scripture.sects (
+    sect_id SERIAL PRIMARY KEY,
+    sect_name VARCHAR(100) NOT NULL UNIQUE -- 'Shaivism', 'Shaktism', 'Vaishnavism', 'Smartism'
+);
+
+-- Meta-classification: Philosophical Schools
+CREATE TABLE scripture.philosophies (
+    philosophy_id SERIAL PRIMARY KEY,
+    philosophy_name VARCHAR(100) NOT NULL UNIQUE -- 'Advaita Vedanta', 'Dvaita', 'Samkhya'
+);
+
+-- Meta-classification: Deities praised in text
+CREATE TABLE scripture.deities (
+    deity_id SERIAL PRIMARY KEY,
+    deity_name VARCHAR(100) NOT NULL UNIQUE -- 'Shiva', 'Vishnu', 'Durga', 'Agni'
+);
+
+-- Core entities lookup: Scriptures
+CREATE TABLE scripture.scriptures (
+    scripture_id SERIAL PRIMARY KEY,
+    code VARCHAR(100) UNIQUE NOT NULL, -- e.g., 'Gita', 'Ramayana', 'Rigveda'
+    titles JSONB NOT NULL,             -- Localized titles: {"en": "Bhagavad Gita", "hi": "भगवद्गीता", "sa": "श्रीमद्भगवद्गीता"}
+    description scripture.localized_description NOT NULL,
+    category_id INT REFERENCES scripture.categories(category_id) ON DELETE RESTRICT,
+    class_id INT REFERENCES scripture.classes(class_id) ON DELETE RESTRICT,
+    source_id INT REFERENCES general.data_sources(source_id) ON DELETE SET NULL,
+    search_weight INT DEFAULT 1,
+    meta_tags JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+

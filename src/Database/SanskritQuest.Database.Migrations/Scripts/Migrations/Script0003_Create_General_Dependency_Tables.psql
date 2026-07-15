@@ -1,0 +1,13 @@
+-- Script 0003: Create general schema tables (dependency layer)
+CREATE TABLE general.languages (
+    lang_code VARCHAR(10) PRIMARY KEY, -- 'en', 'hi', 'sa_deva', 'sa_iast', 'sa_slp1'
+    display_name VARCHAR(100) NOT NULL,
+    is_transliteration BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE general.data_sources (
+    source_id SERIAL PRIMARY KEY,
+    source_name VARCHAR(100) NOT NULL UNIQUE, -- 'HuggingFace_Gita_V1', 'Kaggle_MW'
+    base_url TEXT,
+    ingestion_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

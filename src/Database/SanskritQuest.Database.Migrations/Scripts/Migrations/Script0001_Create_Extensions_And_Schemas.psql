@@ -1,0 +1,7 @@
+-- Script 0001: Create Extensions and Schemas for scripture redesign
+CREATE EXTENSION IF NOT EXISTS ltree;       -- For hierarchical tree path traversal
+CREATE EXTENSION IF NOT EXISTS pg_trgm;     -- For fuzzy Sanskrit text searching
+CREATE EXTENSION IF NOT EXISTS vector;      -- For pgvector AI RAG embedding support
+
+CREATE SCHEMA IF NOT EXISTS general;
+CREATE SCHEMA IF NOT EXISTS scripture;

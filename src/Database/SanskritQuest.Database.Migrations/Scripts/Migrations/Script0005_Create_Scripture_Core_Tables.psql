@@ -1,0 +1,174 @@
+-- Script 0005: Create scripture core relational tables, embeddings, and associated indexes
+-- ========================================================================
+-- 1. HIERARCHY TABLE & INDEXES
+-- ========================================================================
+CREATE TABLE scripture.hierarchy (
+    hierarchy_id SERIAL PRIMARY KEY,
+    scripture_id INT NOT NULL REFERENCES scripture.scriptures(scripture_id) ON DELETE CASCADE,
+    parent_id INT REFERENCES scripture.hierarchy(hierarchy_id) ON DELETE CASCADE,
+    local_label VARCHAR(100) NOT NULL,
+    path ltree UNIQUE, -- Populated and managed automatically by triggers
+    node_type VARCHAR(50) NOT NULL, -- 'Scripture', 'Kanda', 'Adhyaya', 'Sarga'
+    titles JSONB NOT NULL, -- {"en": "...", "hi": "...", "sa": "..."}
+    description scripture.localized_description NOT NULL,
+    search_weight INT DEFAULT 1,
+    meta_tags JSONB DEFAULT '[]'::jsonb,
+    CONSTRAINT chk_local_label_format CHECK (local_label ~ '^[A-Za-z0-9_]+$')
+);
+
+CREATE INDEX idx_scripture_hierarchy_path ON scripture.hierarchy USING gist (path);
+CREATE INDEX idx_scripture_hierarchy_meta_tags ON scripture.hierarchy USING gin (meta_tags);
+CREATE INDEX idx_hierarchy_scripture_id ON scripture.hierarchy (scripture_id);
+CREATE INDEX idx_hierarchy_parent_id ON scripture.hierarchy (parent_id);
+
+-- Indexes for the new scripture.scriptures table
+CREATE INDEX idx_scriptures_category_id ON scripture.scriptures (category_id);
+CREATE INDEX idx_scriptures_class_id ON scripture.scriptures (class_id);
+CREATE INDEX idx_scriptures_title_en_trgm ON scripture.scriptures USING gin ((titles->>'en') gin_trgm_ops);
+CREATE INDEX idx_scriptures_title_sa_trgm ON scripture.scriptures USING gin ((titles->>'sa') gin_trgm_ops);
+CREATE INDEX idx_scriptures_meta_tags ON scripture.scriptures USING gin (meta_tags);
+
+-- ========================================================================
+-- PATH AUTO-GENERATION & CASCADE TRIGGERS
+-- ========================================================================
+
+-- Trigger function to auto-populate hierarchy path BEFORE INSERT OR UPDATE
+CREATE OR REPLACE FUNCTION scripture.fn_populate_hierarchy_path()
+RETURNS TRIGGER AS $$
+DECLARE
+    parent_path ltree;
+    scripture_code VARCHAR(100);
+BEGIN
+    -- 1. Root Node Path Calculation
+    IF NEW.parent_id IS NULL THEN
+        SELECT code INTO scripture_code 
+        FROM scripture.scriptures 
+        WHERE scripture_id = NEW.scripture_id;
+        
+        IF scripture_code IS NULL THEN
+            RAISE EXCEPTION 'Scripture ID % does not exist', NEW.scripture_id;
+        END IF;
+
+        NEW.path := text2ltree(scripture_code);
+    -- 2. Child Node Path Calculation
+    ELSE
+        SELECT path INTO parent_path 
+        FROM scripture.hierarchy 
+        WHERE hierarchy_id = NEW.parent_id;
+        
+        IF parent_path IS NULL THEN
+            RAISE EXCEPTION 'Parent hierarchy node with ID % does not exist', NEW.parent_id;
+        END IF;
+
+        NEW.path := parent_path || text2ltree(NEW.local_label);
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_populate_hierarchy_path
+BEFORE INSERT OR UPDATE OF parent_id, local_label, scripture_id ON scripture.hierarchy
+FOR EACH ROW
+EXECUTE FUNCTION scripture.fn_populate_hierarchy_path();
+
+-- Trigger function to cascade path updates recursively AFTER UPDATE of parent path
+CREATE OR REPLACE FUNCTION scripture.fn_cascade_hierarchy_path_updates()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.path IS DISTINCT FROM NEW.path THEN
+        UPDATE scripture.hierarchy
+        SET path = NEW.path || subpath(path, nlevel(OLD.path))
+        WHERE path <@ OLD.path AND hierarchy_id <> NEW.hierarchy_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_cascade_hierarchy_path_updates
+AFTER UPDATE OF path ON scripture.hierarchy
+FOR EACH ROW
+EXECUTE FUNCTION scripture.fn_cascade_hierarchy_path_updates();
+
+
+
+-- ========================================================================
+-- 2. VERSES TABLE & INDEXES
+-- ========================================================================
+CREATE TABLE scripture.verses (
+    verse_id SERIAL PRIMARY KEY,
+    hierarchy_id INT REFERENCES scripture.hierarchy(hierarchy_id) ON DELETE CASCADE,
+    verse_number VARCHAR(50) NOT NULL, -- '1.1.1', '2.47'
+    verse_type VARCHAR(50) DEFAULT 'Shloka', -- 'Shloka', 'Mantra', 'Stotra_Verse'
+    content_sanskrit TEXT NOT NULL, -- Original Devanagari
+    transliteration_iast TEXT NOT NULL, -- "karmaṇy-evādhikāras te..."
+    transliteration_slp1 TEXT NOT NULL, -- "karmaRyevADikAras te..."
+    verse_data scripture.localized_verse_content NOT NULL,
+    source_id INT REFERENCES general.data_sources(source_id),
+    search_weight INT DEFAULT 1,
+    meta_tags JSONB DEFAULT '[]'::jsonb
+);
+
+CREATE INDEX idx_verses_iast_trgm ON scripture.verses USING gin (transliteration_iast gin_trgm_ops);
+CREATE INDEX idx_verses_slp1_trgm ON scripture.verses USING gin (transliteration_slp1 gin_trgm_ops);
+CREATE INDEX idx_verses_deva_trgm ON scripture.verses USING gin (content_sanskrit gin_trgm_ops);
+CREATE INDEX idx_verses_meta_tags ON scripture.verses USING gin (meta_tags);
+CREATE INDEX idx_scripture_fts_en ON scripture.verses USING gin (to_tsvector('english', COALESCE(verse_data->>'translation_en', '')));
+CREATE INDEX idx_scripture_fts_hi ON scripture.verses USING gin (to_tsvector('simple', COALESCE(verse_data->>'translation_hi', '')));
+
+-- ========================================================================
+-- 3. VERSE EMBEDDINGS TABLE & INDEXES
+-- ========================================================================
+CREATE TABLE scripture.verse_embeddings (
+    embedding_id SERIAL PRIMARY KEY,
+    verse_id INT REFERENCES scripture.verses(verse_id) ON DELETE CASCADE,
+    language_code VARCHAR(10) REFERENCES general.languages(lang_code),
+    embedding vector(1536) NOT NULL -- Configured for OpenAI text-embedding-3-small
+);
+
+CREATE INDEX idx_scripture_embeddings_hnsw ON scripture.verse_embeddings USING hnsw (embedding vector_cosine_ops);
+
+-- ========================================================================
+-- 4. COMMENTATORS TABLE
+-- ========================================================================
+CREATE TABLE scripture.commentators (
+    commentator_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL, -- 'Adi Shankara'
+    philosophy_id INT REFERENCES scripture.philosophies(philosophy_id) ON DELETE SET NULL, -- References philosophical school
+    authority_rank INT DEFAULT 1,       -- Score weight boost
+    biography scripture.localized_description
+);
+
+-- ========================================================================
+-- 5. COMMENTARIES TABLE & INDEXES
+-- ========================================================================
+CREATE TABLE scripture.commentaries (
+    commentary_id SERIAL PRIMARY KEY,
+    verse_id INT REFERENCES scripture.verses(verse_id) ON DELETE CASCADE,
+    commentator_id INT REFERENCES scripture.commentators(commentator_id) ON DELETE RESTRICT,
+    language_code VARCHAR(10) REFERENCES general.languages(lang_code),
+    content TEXT NOT NULL,
+    content_sanskrit TEXT,
+    search_weight INT DEFAULT 1,
+    meta_tags JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_commentaries_fts_en ON scripture.commentaries USING gin (to_tsvector('english', content)) WHERE (language_code = 'en');
+CREATE INDEX idx_commentaries_fts_hi ON scripture.commentaries USING gin (to_tsvector('simple', content)) WHERE (language_code = 'hi');
+CREATE INDEX idx_commentaries_fts_sa ON scripture.commentaries USING gin (to_tsvector('simple', COALESCE(content_sanskrit, '')));
+CREATE INDEX idx_commentaries_sanskrit_trgm ON scripture.commentaries USING gin (content_sanskrit gin_trgm_ops) WHERE (content_sanskrit IS NOT NULL);
+CREATE INDEX idx_commentaries_meta_tags ON scripture.commentaries USING gin (meta_tags);
+
+-- ========================================================================
+-- 6. COMMENTARY EMBEDDINGS TABLE & INDEXES
+-- ========================================================================
+CREATE TABLE scripture.commentary_embeddings (
+    embedding_id SERIAL PRIMARY KEY,
+    commentary_id INT REFERENCES scripture.commentaries(commentary_id) ON DELETE CASCADE,
+    chunk_index INT NOT NULL DEFAULT 0,
+    chunk_text TEXT NOT NULL,
+    embedding vector(1536) NOT NULL
+);
+
+CREATE INDEX idx_commentary_embeds_hnsw ON scripture.commentary_embeddings USING hnsw (embedding vector_cosine_ops);
