@@ -1,0 +1,59 @@
+-- Script 0005: Create scripture.GetVersesDetails function returning a table
+DROP PROCEDURE IF EXISTS scripture.GetVersesDetails(INT, VARCHAR(50), VARCHAR(50), TEXT, TEXT, TEXT, JSONB, INT, INT, JSONB, INT, INT, VARCHAR(100), TEXT, VARCHAR(50), TEXT, TEXT, TEXT, INT, VARCHAR(100), TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS scripture.GetVersesDetails(INT);
+
+CREATE OR REPLACE FUNCTION scripture.GetVersesDetails(p_verse_id INT)
+RETURNS TABLE (
+    verse_number VARCHAR(50),
+    verse_type VARCHAR(50),
+    content_sanskrit TEXT,
+    translation_en TEXT,
+    translation_hi TEXT,
+    word_breakdown JSONB,
+    source_id INT,
+    search_weight INT,
+    meta_tags JSONB,
+    hierarchy_id INT,
+    hierarchy_parent_id INT,
+    hierarchy_local_label VARCHAR(100),
+    hierarchy_path TEXT,
+    hierarchy_node_type VARCHAR(50),
+    hierarchy_title_en TEXT,
+    hierarchy_title_hi TEXT,
+    hierarchy_title_sa TEXT,
+    scripture_id INT,
+    scripture_code VARCHAR(100),
+    scripture_title_en TEXT,
+    scripture_title_hi TEXT,
+    scripture_title_sa TEXT
+)
+LANGUAGE sql
+AS $$
+    SELECT 
+        v.verse_number,
+        v.verse_type,
+        v.content_sanskrit,
+        v.verse_data->>'translation_en' AS translation_en,
+        v.verse_data->>'translation_hi' AS translation_hi,
+        v.verse_data->'word_breakdown' AS word_breakdown,
+        v.source_id,
+        v.search_weight,
+        v.meta_tags,
+        h.hierarchy_id,
+        h.parent_id AS hierarchy_parent_id,
+        h.local_label AS hierarchy_local_label,
+        h.path::text AS hierarchy_path,
+        h.node_type AS hierarchy_node_type,
+        h.titles->>'en' AS hierarchy_title_en,
+        h.titles->>'hi' AS hierarchy_title_hi,
+        h.titles->>'sa' AS hierarchy_title_sa,
+        s.scripture_id,
+        s.code AS scripture_code,
+        s.titles->>'en' AS scripture_title_en,
+        s.titles->>'hi' AS scripture_title_hi,
+        s.titles->>'sa' AS scripture_title_sa
+    FROM scripture.verses v
+    JOIN scripture.hierarchy h ON v.hierarchy_id = h.hierarchy_id
+    JOIN scripture.scriptures s ON h.scripture_id = s.scripture_id
+    WHERE v.verse_id = p_verse_id;
+$$;

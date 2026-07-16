@@ -1,0 +1,44 @@
+-- Script 0003: Create scripture.GetAllScripture function returning a table
+DROP PROCEDURE IF EXISTS scripture.GetAllScripture(REFCURSOR);
+DROP FUNCTION IF EXISTS scripture.GetAllScripture();
+
+CREATE OR REPLACE FUNCTION scripture.GetAllScripture()
+RETURNS TABLE (
+    scripture_id INT,
+    code VARCHAR(100),
+    title_en TEXT,
+    title_hi TEXT,
+    title_sa TEXT,
+    description_en TEXT,
+    description_hi TEXT,
+    category_id INT,
+    category_name VARCHAR(50),
+    class_id INT,
+    class_name VARCHAR(100),
+    source_id INT,
+    search_weight INT,
+    meta_tags JSONB,
+    created_at TIMESTAMP WITH TIME ZONE
+)
+LANGUAGE sql
+AS $$
+    SELECT 
+        s.scripture_id,
+        s.code,
+        s.titles->>'en' AS title_en,
+        s.titles->>'hi' AS title_hi,
+        s.titles->>'sa' AS title_sa,
+        s.description->>'en' AS description_en,
+        s.description->>'hi' AS description_hi,
+        s.category_id,
+        c.category_name,
+        s.class_id,
+        cl.class_name,
+        s.source_id,
+        s.search_weight,
+        s.meta_tags,
+        s.created_at
+    FROM scripture.scriptures s
+    LEFT JOIN scripture.categories c ON s.category_id = c.category_id
+    LEFT JOIN scripture.classes cl ON s.class_id = cl.class_id;
+$$;

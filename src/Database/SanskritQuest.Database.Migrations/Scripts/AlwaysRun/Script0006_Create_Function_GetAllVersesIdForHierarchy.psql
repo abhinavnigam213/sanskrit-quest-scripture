@@ -1,0 +1,21 @@
+-- Script 0006: Create scripture.GetAllVersesIdForHierarchy function returning a table
+DROP PROCEDURE IF EXISTS scripture.GetAllVersesIdForHierachy(INT, REFCURSOR);
+DROP FUNCTION IF EXISTS scripture.GetAllVersesIdForHierachy(INT);
+DROP FUNCTION IF EXISTS scripture.GetAllVersesIdForHierarchy(INT);
+
+CREATE OR REPLACE FUNCTION scripture.GetAllVersesIdForHierarchy(p_hierarchy_id INT)
+RETURNS TABLE (
+    verse_id INT,
+    content_sanskrit TEXT
+)
+LANGUAGE sql
+AS $$
+    SELECT 
+        v.verse_id,
+        v.content_sanskrit
+    FROM scripture.verses v
+    JOIN scripture.hierarchy sub_h ON v.hierarchy_id = sub_h.hierarchy_id
+    JOIN scripture.hierarchy parent_h ON parent_h.hierarchy_id = p_hierarchy_id
+    WHERE sub_h.path <@ parent_h.path
+    ORDER BY sub_h.path, v.verse_number;
+$$;

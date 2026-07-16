@@ -1,0 +1,95 @@
+-- Script 0004: Create scripture.GetScriptureDetails function returning a table
+DROP PROCEDURE IF EXISTS scripture.GetScriptureDetails(INT, REFCURSOR);
+DROP FUNCTION IF EXISTS scripture.GetScriptureDetails(INT);
+
+CREATE OR REPLACE FUNCTION scripture.GetScriptureDetails(p_scripture_id INT)
+RETURNS TABLE (
+    scripture_id INT,
+    scripture_code VARCHAR(100),
+    scripture_title_en TEXT,
+    scripture_title_hi TEXT,
+    scripture_title_sa TEXT,
+    hierarchy_id INT,
+    parent_id INT,
+    local_label VARCHAR(100),
+    path TEXT,
+    node_type VARCHAR(50),
+    hierarchy_title_en TEXT,
+    hierarchy_title_hi TEXT,
+    hierarchy_title_sa TEXT,
+    hierarchy_description_en TEXT,
+    hierarchy_description_hi TEXT,
+    sequence_number INT,
+    direct_verse_count INT,
+    recursive_verse_count INT
+)
+LANGUAGE sql
+AS $$
+    WITH RECURSIVE hierarchy_tree AS (
+        -- Anchor: Root nodes for the given scripture
+        SELECT 
+            h.hierarchy_id,
+            h.parent_id,
+            h.local_label,
+            h.path,
+            h.node_type,
+            h.titles,
+            h.description,
+            h.sequence_number,
+            ARRAY[h.sequence_number] AS sort_path
+        FROM scripture.hierarchy h
+        WHERE h.scripture_id = p_scripture_id AND h.parent_id IS NULL
+        
+        UNION ALL
+        
+        -- Recursive: Child nodes
+        SELECT 
+            c.hierarchy_id,
+            c.parent_id,
+            c.local_label,
+            c.path,
+            c.node_type,
+            c.titles,
+            c.description,
+            c.sequence_number,
+            p.sort_path || c.sequence_number AS sort_path
+        FROM scripture.hierarchy c
+        JOIN hierarchy_tree p ON c.parent_id = p.hierarchy_id
+    ),
+    verse_counts AS (
+        SELECT 
+            h.hierarchy_id,
+            (SELECT COUNT(*)::INT FROM scripture.verses v WHERE v.hierarchy_id = h.hierarchy_id) AS direct_count,
+            (
+                SELECT COUNT(*)::INT 
+                FROM scripture.verses v 
+                JOIN scripture.hierarchy sub_h ON v.hierarchy_id = sub_h.hierarchy_id 
+                WHERE sub_h.path <@ h.path
+            ) AS recursive_count
+        FROM scripture.hierarchy h
+        WHERE h.scripture_id = p_scripture_id
+    )
+    SELECT 
+        s.scripture_id,
+        s.code AS scripture_code,
+        s.titles->>'en' AS scripture_title_en,
+        s.titles->>'hi' AS scripture_title_hi,
+        s.titles->>'sa' AS scripture_title_sa,
+        ht.hierarchy_id,
+        ht.parent_id,
+        ht.local_label,
+        ht.path::text,
+        ht.node_type,
+        ht.titles->>'en' AS hierarchy_title_en,
+        ht.titles->>'hi' AS hierarchy_title_hi,
+        ht.titles->>'sa' AS hierarchy_title_sa,
+        ht.description->>'en' AS hierarchy_description_en,
+        ht.description->>'hi' AS hierarchy_description_hi,
+        ht.sequence_number,
+        COALESCE(vc.direct_count, 0) AS direct_verse_count,
+        COALESCE(vc.recursive_count, 0) AS recursive_verse_count
+    FROM scripture.scriptures s
+    JOIN hierarchy_tree ht ON s.scripture_id = p_scripture_id
+    LEFT JOIN verse_counts vc ON ht.hierarchy_id = vc.hierarchy_id
+    ORDER BY ht.sort_path;
+$$;
