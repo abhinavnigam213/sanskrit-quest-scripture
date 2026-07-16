@@ -168,10 +168,14 @@ CREATE TABLE scripture.hierarchy (
     node_type VARCHAR(50) NOT NULL, -- 'Scripture', 'Kanda', 'Adhyaya', 'Sarga'
     titles JSONB NOT NULL, -- {"en": "...", "hi": "...", "sa": "..."}
     description scripture.localized_description NOT NULL,
+    sequence_number INT NOT NULL DEFAULT 0,
     search_weight INT DEFAULT 1,
     meta_tags JSONB DEFAULT '[]'::jsonb,
     CONSTRAINT chk_local_label_format CHECK (local_label ~ '^[A-Za-z0-9_]+$')
 );
+
+CREATE INDEX idx_hierarchy_parent_sequence ON scripture.hierarchy (parent_id, sequence_number);
+
 
 -- Trigger function to auto-populate hierarchy path BEFORE INSERT OR UPDATE
 CREATE OR REPLACE FUNCTION scripture.fn_populate_hierarchy_path()
@@ -239,8 +243,6 @@ CREATE TABLE scripture.verses (
     verse_number VARCHAR(50) NOT NULL, -- '1.1.1', '2.47'
     verse_type VARCHAR(50) DEFAULT 'Shloka', -- 'Shloka', 'Mantra', 'Stotra_Verse'
     content_sanskrit TEXT NOT NULL, -- Original Devanagari
-    transliteration_iast TEXT NOT NULL, -- "karmaṇy-evādhikāras te..."
-    transliteration_slp1 TEXT NOT NULL, -- "karmaRyevADikAras te..."
     verse_data scripture.localized_verse_content NOT NULL,
     source_id INT REFERENCES general.data_sources(source_id),
     search_weight INT DEFAULT 1,
@@ -424,6 +426,7 @@ erDiagram
         VARCHAR node_type "Scripture, Kanda, Adhyaya, Sarga"
         JSONB titles "Localized titles map"
         JSONB description "Localized description JSON"
+        INT sequence_number "Ordering index sequence"
         INT search_weight "Ranking Weight"
         JSONB meta_tags "Categorization tags"
     }
@@ -434,8 +437,6 @@ erDiagram
         VARCHAR verse_number "Structured section numbers"
         VARCHAR verse_type "Shloka, Mantra, Stotra_Verse"
         TEXT content_sanskrit "Devanagari Sanskrit Text"
-        TEXT transliteration_iast "IAST Romanized Script"
-        TEXT transliteration_slp1 "SLP1 Romanized Script"
         JSONB verse_data "Localized content & word breakdown array"
         INT source_id FK "References general.data_sources"
         INT search_weight "Ranking Weight"
@@ -601,8 +602,6 @@ erDiagram
         VARCHAR verse_number "Structured section numbers"
         VARCHAR verse_type "Shloka, Mantra, Stotra_Verse"
         TEXT content_sanskrit "Devanagari Sanskrit Text"
-        TEXT transliteration_iast "IAST Romanized Script"
-        TEXT transliteration_slp1 "SLP1 Romanized Script"
         JSONB verse_data "Localized content & word breakdown array"
         INT source_id FK "References general.data_sources"
         INT search_weight "Ranking Weight"
@@ -779,8 +778,6 @@ Main textual unit storing scripture verses.
 - **`verse_number`** `VARCHAR(50) NOT NULL` (e.g., `'2.47'`, `'1.1.1'`)
 - **`verse_type`** `VARCHAR(50) DEFAULT 'Shloka'` (e.g., `'Shloka'`, `'Mantra'`, `'Stotra'`)
 - **`content_sanskrit`** `TEXT NOT NULL`: Devanagari Sanskrit.
-- **`transliteration_iast`** `TEXT NOT NULL`: Romanized IAST.
-- **`transliteration_slp1`** `TEXT NOT NULL`: SLP1 phonetic variant.
 - **`verse_data`** `scripture.localized_verse_content NOT NULL`: Validated JSONB object containing translation values and the parsed sandhi word breakdowns.
 - **`source_id`** `INT REFERENCES general.data_sources(source_id)`
 - **`search_weight`** `INT DEFAULT 1`: Relevance multiplier.
@@ -883,8 +880,6 @@ To maintain sub-10ms response times for text search and sub-50ms for vector RAG 
 | `idx_scriptures_meta_tags` | `scripture.scriptures` | **GIN** | `meta_tags` | JSONB tags lookup filters |
 | `idx_scripture_hierarchy_path` | `scripture.hierarchy` | **GiST** | `path` | Dynamic branch traversal (`<@` or `@>` operators) |
 | `idx_scripture_hierarchy_meta_tags` | `scripture.hierarchy` | **GIN** | `meta_tags` | JSONB lookup filters |
-| `idx_verses_iast_trgm` | `scripture.verses` | **GIN** | `transliteration_iast` | Trigram-based fuzzy matching of romanized Sanskrit |
-| `idx_verses_slp1_trgm` | `scripture.verses` | **GIN** | `transliteration_slp1` | Trigram-based fuzzy matching of SLP1 text |
 | `idx_verses_deva_trgm` | `scripture.verses` | **GIN** | `content_sanskrit` | Trigram-based fuzzy matching of Devanagari Sanskrit |
 | `idx_verses_meta_tags` | `scripture.verses` | **GIN** | `meta_tags` | JSONB lookup filters |
 | `idx_commentaries_fts_en` | `scripture.commentaries` | **GIN** | `content` | FTS search for English commentaries |
@@ -905,8 +900,6 @@ To maintain sub-10ms response times for text search and sub-50ms for vector RAG 
 CREATE INDEX idx_scripture_hierarchy_path ON scripture.hierarchy USING gist (path);
 CREATE INDEX idx_scripture_hierarchy_meta_tags ON scripture.hierarchy USING gin (meta_tags);
 
-CREATE INDEX idx_verses_iast_trgm ON scripture.verses USING gin (transliteration_iast gin_trgm_ops);
-CREATE INDEX idx_verses_slp1_trgm ON scripture.verses USING gin (transliteration_slp1 gin_trgm_ops);
 CREATE INDEX idx_verses_deva_trgm ON scripture.verses USING gin (content_sanskrit gin_trgm_ops);
 CREATE INDEX idx_verses_meta_tags ON scripture.verses USING gin (meta_tags);
 
@@ -1006,19 +999,19 @@ INSERT INTO scripture.scriptures (scripture_id, code, titles, description, categ
 ON CONFLICT (scripture_id) DO NOTHING;
 
 -- Root hierarchy node referencing scripture
-INSERT INTO scripture.hierarchy (hierarchy_id, scripture_id, parent_id, local_label, node_type, titles, description, search_weight, meta_tags) VALUES 
+INSERT INTO scripture.hierarchy (hierarchy_id, scripture_id, parent_id, local_label, node_type, titles, description, sequence_number, search_weight, meta_tags) VALUES 
 (1, 1, NULL, 'Bhagavad_Gita', 'Scripture', 
  '{"en": "Bhagavad Gita", "hi": "भगवद्गीता", "sa": "श्रीमद्भगवद्गीता"}', 
  '{"en": "The dialogue between Sri Krishna and Arjuna on duty and duty-less action.", "hi": "कर्तव्य और निष्काम कर्म पर श्री कृष्ण और अर्जुन के बीच संवाद।"}', 
- 10, '["Gita", "Epic", "Mahabharata"]'::jsonb)
+ 1, 10, '["Gita", "Epic", "Mahabharata"]'::jsonb)
 ON CONFLICT (hierarchy_id) DO NOTHING;
 
 -- Sub-section child node config (Chapter 2)
-INSERT INTO scripture.hierarchy (hierarchy_id, scripture_id, parent_id, local_label, node_type, titles, description, search_weight, meta_tags) VALUES 
+INSERT INTO scripture.hierarchy (hierarchy_id, scripture_id, parent_id, local_label, node_type, titles, description, sequence_number, search_weight, meta_tags) VALUES 
 (2, 1, 1, 'Adhyaya_2', 'Chapter', 
  '{"en": "Chapter 2: Sankhya Yoga", "hi": "अध्याय २: सांख्य योग", "sa": "सांख्ययोगः"}', 
  '{"en": "The yoga of analytical knowledge", "hi": "ज्ञान का विश्लेषणात्मक योग"}', 
- 5, '["Chapter", "Sankhya"]'::jsonb)
+ 2, 5, '["Chapter", "Sankhya"]'::jsonb)
 ON CONFLICT (hierarchy_id) DO NOTHING;
 
 -- 4. Unstructured Raw Ingestion Dump (ELT Pipeline Source)
@@ -1027,11 +1020,9 @@ INSERT INTO raw_staging.scripture_dump (source_id, target_scripture_name, raw_fo
  '{ "raw_verse_id": "BG_02_47", "sanskrit_text": "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन...", "en_trans": "You have a right to perform your actions...", "hi_trans": "तुम्हारा अधिकार केवल कर्म पर है..." }'::jsonb);
 
 -- 5. Polished Schemas (Parsed Relational Core)
-INSERT INTO scripture.verses (verse_id, hierarchy_id, verse_number, verse_type, content_sanskrit, transliteration_iast, transliteration_slp1, verse_data, source_id, search_weight, meta_tags) VALUES 
+INSERT INTO scripture.verses (verse_id, hierarchy_id, verse_number, verse_type, content_sanskrit, verse_data, source_id, search_weight, meta_tags) VALUES 
 (1, 2, '2.47', 'Shloka', 
  'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।', 
- 'karmaṇy-evādhikāras te mā phaleṣu kadācana', 
- 'karmaRyevADikAras te mA Palezu kadAcana', 
  '{ "translation_en": "You have a right to perform your prescribed duty, but you are not entitled to the fruits of action.", "translation_hi": "तुम्हारा अधिकार केवल कर्म करने पर है, उसके फलों पर कभी नहीं।", "word_breakdown": [ {"word_sanskrit": "कर्मणि", "word_iast": "karmaṇi", "meaning_en": "in action / duty", "meaning_hi": "कर्म में"}, {"word_sanskrit": "एव", "word_iast": "eva", "meaning_en": "only / alone", "meaning_hi": "ही"}, {"word_sanskrit": "अधिकारः", "word_iast": "adhikāraḥ", "meaning_en": "right / jurisdiction", "meaning_hi": "अधिकार"}, {"word_sanskrit": "ते", "word_iast": "te", "meaning_en": "your", "meaning_hi": "तुम्हारा"} ] }'::jsonb, 
  1, 100, '["Karma", "NishkamaKarma", "Duty"]'::jsonb)
 ON CONFLICT (verse_id) DO NOTHING;

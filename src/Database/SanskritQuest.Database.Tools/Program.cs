@@ -1,24 +1,22 @@
 using System;
-using System.Collections.Generic;
-using System.Formats.Asn1;
-using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text.Json;
-using CsvHelper;
-using CsvHelper.Configuration;
-using Insight.Database;
-using Microsoft.Data.Sqlite;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using SanskritQuest.Data.Contracts;
+using SanskritQuest.Database.Tools.Ingestion;
+using SanskritQuest.Database.Tools.Repository;
 
 namespace SanskritQuest.Database.Tools
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
+            // Set output encoding to UTF-8 to correctly print Devanagari (Sanskrit/Hindi) characters
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+            // Initialize Configuration
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -27,251 +25,214 @@ namespace SanskritQuest.Database.Tools
             string connectionString = configuration.GetConnectionString("DefaultConnection") 
                 ?? throw new InvalidOperationException("PostgreSQL Connection string 'DefaultConnection' not found.");
 
-            // Register PostgreSQL Insight Db Provider
-            Insight.Database.Providers.PostgreSQL.PostgreSQLInsightDbProvider.RegisterProvider();
-
-            string jsonPath = configuration.GetValue<string>("DataSources:JsonSourcePath") ?? "";
-            string csvPath = configuration.GetValue<string>("DataSources:CsvSourcePath") ?? "";
-            string sqliteConnectionString = configuration.GetValue<string>("DataSources:SqliteSourceConnection") ?? "";
-
-            if (args.Length == 0)
+            // Register PostgreSQL Insight Db Provider (keep for backward compatibility if other tools use it)
+            try
             {
-                ShowUsage();
-                return;
+                Insight.Database.Providers.PostgreSQL.PostgreSQLInsightDbProvider.RegisterProvider();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Warning] Failed to register Insight Db Provider: {ex.Message}");
             }
 
-            string action = args[0].ToLower();
+            // Setup Dependency Injection Container
+            var services = new ServiceCollection();
+            ConfigureServices(services, configuration, connectionString);
+            var serviceProvider = services.BuildServiceProvider();
+
+            // Resolve Ingestion Orchestrator
+            var orchestrator = serviceProvider.GetRequiredService<IngestionOrchestrator>();
+
+            // Run Interactive CLI Loop
+            while (true)
+            {
+                Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine("==================================================================");
+                Console.WriteLine("             SANSKRIT QUEST SCRIPTURE INGESTER                   ");
+                Console.WriteLine("==================================================================");
+                Console.ResetColor();
+                Console.WriteLine("Available options for ingestion: 'Bhagavad_Gita', 'Valmiki Ramayana', 'All'");
+                Console.Write("Enter scripture to ingest (or 'exit' to quit): ");
+                
+                string? input = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input))
+                {
+                    continue;
+                }
+
+                string normalizedInput = input.Trim();
+                if (normalizedInput.Equals("exit", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("Exiting scripture ingester. Good bye!");
+                    Console.ResetColor();
+                    break;
+                }
+
+                try
+                {
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.WriteLine($"[INGESTION START] Initializing pipeline for '{normalizedInput}'...");
+                    Console.ResetColor();
+
+                    await orchestrator.IngestScriptureAsync(normalizedInput);
+
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"[SUCCESS] Scripture '{normalizedInput}' ingested successfully!");
+                    Console.ResetColor();
+
+                    // Verification phase
+                    string verificationTarget = ResolveScriptureCodeForVerification(normalizedInput);
+                    if (verificationTarget == "Bhagavad_Gita" || verificationTarget == "All")
+                    {
+                        await VerifyScriptureDataAsync(connectionString, "Bhagavad_Gita", 1);
+                    }
+                    if (verificationTarget == "Valmiki_Ramayana" || verificationTarget == "All")
+                    {
+                        await VerifyScriptureDataAsync(connectionString, "Valmiki_Ramayana", 2);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"[ERROR] Ingestion failed for '{normalizedInput}':");
+                    Console.WriteLine(ex.Message);
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"Details: {ex.InnerException.Message}");
+                    }
+                    Console.ResetColor();
+                }
+            }
+        }
+
+        private static string ResolveScriptureCodeForVerification(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return "";
+            var normalized = input.Trim().ToLowerInvariant();
+
+            if (normalized.Contains("gita") || normalized == "geeta" || normalized == "bg" || normalized == "bhagavad_gita")
+            {
+                return "Bhagavad_Gita";
+            }
+            if (normalized.Contains("ramayan") || normalized == "vr" || normalized == "valmiki ramayana" || normalized == "valmiki_ramayana")
+            {
+                return "Valmiki_Ramayana";
+            }
+            if (normalized == "all")
+            {
+                return "All";
+            }
+
+            return input;
+        }
+
+        private static async Task VerifyScriptureDataAsync(string connectionString, string scriptureCode, int scriptureId)
+        {
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"==================================================================");
+            Console.WriteLine($"   VERIFICATION FOR SCRIPTURE: {scriptureCode} (ID: {scriptureId})");
+            Console.WriteLine($"==================================================================");
+            Console.ResetColor();
 
             try
             {
-                switch (action)
+                using var conn = new NpgsqlConnection(connectionString);
+                await conn.OpenAsync();
+
+                // Query 1: Count Hierarchy Nodes
+                string hierarchyCountQuery = "SELECT COUNT(*) FROM scripture.hierarchy WHERE scripture_id = @scriptureId;";
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.WriteLine($"Executing query: {hierarchyCountQuery}");
+                Console.ResetColor();
+
+                using var cmd1 = new NpgsqlCommand(hierarchyCountQuery, conn);
+                cmd1.Parameters.AddWithValue("scriptureId", scriptureId);
+                long hierarchyCount = Convert.ToInt64(await cmd1.ExecuteScalarAsync());
+
+                // Query 2: Count Verses
+                string verseCountQuery = @"
+                    SELECT COUNT(*) FROM scripture.verses 
+                    WHERE hierarchy_id IN (SELECT hierarchy_id FROM scripture.hierarchy WHERE scripture_id = @scriptureId);";
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.WriteLine($"Executing query: {verseCountQuery}");
+                Console.ResetColor();
+
+                using var cmd2 = new NpgsqlCommand(verseCountQuery, conn);
+                cmd2.Parameters.AddWithValue("scriptureId", scriptureId);
+                long verseCount = Convert.ToInt64(await cmd2.ExecuteScalarAsync());
+
+                // Query 3: Select sample verse
+                string sampleVerseQuery = @"
+                    SELECT verse_number, content_sanskrit, verse_data::text 
+                    FROM scripture.verses 
+                    WHERE hierarchy_id IN (SELECT hierarchy_id FROM scripture.hierarchy WHERE scripture_id = @scriptureId) 
+                    ORDER BY verse_id ASC LIMIT 1;";
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.WriteLine($"Executing query: {sampleVerseQuery}");
+                Console.ResetColor();
+
+                using var cmd3 = new NpgsqlCommand(sampleVerseQuery, conn);
+                cmd3.Parameters.AddWithValue("scriptureId", scriptureId);
+                
+                string? verseNumber = null;
+                string? sanskritText = null;
+                string? verseDataJson = null;
+
+                using (var reader = await cmd3.ExecuteReaderAsync())
                 {
-                    case "--import-json":
-                        Console.WriteLine($"Importing data from JSON source: {jsonPath}");
-                        ImportFromJson(jsonPath, connectionString);
-                        break;
+                    if (await reader.ReadAsync())
+                    {
+                        verseNumber = reader.GetString(0);
+                        sanskritText = reader.GetString(1);
+                        verseDataJson = reader.GetString(2);
+                    }
+                }
 
-                    case "--import-csv":
-                        Console.WriteLine($"Importing data from CSV source: {csvPath}");
-                        ImportFromCsv(csvPath, connectionString);
-                        break;
-
-                    case "--import-sqlite":
-                        Console.WriteLine($"Importing data from SQLite source...");
-                        ImportFromSqlite(sqliteConnectionString, connectionString);
-                        break;
-
-                    case "--export-json":
-                        Console.WriteLine($"Exporting data to JSON target: {jsonPath}");
-                        ExportToJson(jsonPath, connectionString);
-                        break;
-
-                    default:
-                        Console.WriteLine($"Unknown argument: {args[0]}");
-                        ShowUsage();
-                        break;
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("[VERIFICATION SUCCESS]");
+                Console.ResetColor();
+                Console.WriteLine($"  Hierarchy Node Count: {hierarchyCount}");
+                Console.WriteLine($"  Verse Count:          {verseCount}");
+                if (verseNumber != null)
+                {
+                    Console.WriteLine($"  Sample Verse:         {verseNumber}");
+                    Console.WriteLine($"  Sanskrit Content:     {sanskritText}");
+                    Console.WriteLine($"  Verse JSON Data:      {verseDataJson}");
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("  No verses found in the database for this scripture.");
+                    Console.ResetColor();
                 }
             }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Operation failed: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
+                Console.WriteLine($"[VERIFICATION FAILURE] Verification queries failed for '{scriptureCode}':");
+                Console.WriteLine(ex.Message);
                 Console.ResetColor();
             }
+            Console.WriteLine("==================================================================");
         }
 
-        static void ShowUsage()
+        private static void ConfigureServices(IServiceCollection services, IConfiguration configuration, string connectionString)
         {
-            Console.WriteLine("SanskritQuest Database Import/Export Tool");
-            Console.WriteLine("Usage:");
-            Console.WriteLine("  dotnet run --project SanskritQuest.Database.Tools -- --import-json");
-            Console.WriteLine("  dotnet run --project SanskritQuest.Database.Tools -- --import-csv");
-            Console.WriteLine("  dotnet run --project SanskritQuest.Database.Tools -- --import-sqlite");
-            Console.WriteLine("  dotnet run --project SanskritQuest.Database.Tools -- --export-json");
+            // Add Configuration singleton
+            services.AddSingleton<IConfiguration>(configuration);
+
+            // Add Repository Layer with Connection String
+            services.AddSingleton<IIngestionRepository>(new IngestionRepository(connectionString));
+
+            // Add IScriptureIngesters
+            services.AddTransient<IScriptureIngester, GitaExcelIngester>();
+            services.AddTransient<IScriptureIngester, RamayanaExcelIngester>();
+
+            // Add Orchestrator
+            services.AddTransient<IngestionOrchestrator>();
         }
-
-        private static void ImportFromJson(string filePath, string targetDbConnection)
-        {
-            if (!File.Exists(filePath))
-            {
-                throw new FileNotFoundException($"JSON file not found at: {filePath}");
-            }
-
-            string jsonContent = File.ReadAllText(filePath);
-            var scriptures = JsonSerializer.Deserialize<List<Scripture>>(jsonContent, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            if (scriptures == null || scriptures.Count == 0)
-            {
-                Console.WriteLine("No scriptures found in the JSON file to import.");
-                return;
-            }
-
-            Console.WriteLine($"Parsed {scriptures.Count} scriptures from JSON. Writing to PostgreSQL...");
-            BulkUpsertScriptures(scriptures, targetDbConnection);
-            Console.WriteLine("JSON import completed successfully.");
-        }
-
-        private static void ImportFromCsv(string filePath, string targetDbConnection)
-        {
-            if (!File.Exists(filePath))
-            {
-                throw new FileNotFoundException($"CSV file not found at: {filePath}");
-            }
-
-            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                PrepareHeaderForMatch = args => args.Header.ToLower(),
-                HeaderValidated = null,
-                MissingFieldFound = null
-            };
-
-            using var reader = new StreamReader(filePath);
-            using var csv = new CsvReader(reader, config);
-            var scriptures = csv.GetRecords<Scripture>().ToList();
-
-            if (scriptures.Count == 0)
-            {
-                Console.WriteLine("No scriptures found in the CSV file to import.");
-                return;
-            }
-
-            Console.WriteLine($"Parsed {scriptures.Count} scriptures from CSV. Writing to PostgreSQL...");
-            BulkUpsertScriptures(scriptures, targetDbConnection);
-            Console.WriteLine("CSV import completed successfully.");
-        }
-
-        private static void ImportFromSqlite(string sqliteConnString, string targetDbConnection)
-        {
-            if (string.IsNullOrWhiteSpace(sqliteConnString))
-            {
-                throw new ArgumentException("SQLite connection string is not configured.");
-            }
-
-            var scriptures = new List<Scripture>();
-            using (var sqliteConn = new SqliteConnection(sqliteConnString))
-            {
-                sqliteConn.Open();
-                
-                // Select columns from the source SQLite database scriptures table
-                using var cmd = new SqliteCommand(@"
-                    SELECT id, title, source, category, verse, 
-                           transliteration_default, translation_default_english, translation_default_hindi 
-                    FROM scriptures", sqliteConn);
-
-                using var reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    scriptures.Add(new Scripture(
-                        Id: reader.GetString(0),
-                        Title: reader.GetString(1),
-                        Source: reader.GetString(2),
-                        Category: reader.GetString(3),
-                        Verse: reader.GetString(4),
-                        TransliterationDefault: reader.IsDBNull(5) ? "" : reader.GetString(5),
-                        TranslationDefaultEnglish: reader.IsDBNull(6) ? "" : reader.GetString(6),
-                        TranslationDefaultHindi: reader.IsDBNull(7) ? "" : reader.GetString(7)
-                    ));
-                }
-            }
-
-            if (scriptures.Count == 0)
-            {
-                Console.WriteLine("No scriptures found in SQLite database to import.");
-                return;
-            }
-
-            Console.WriteLine($"Retrieved {scriptures.Count} scriptures from SQLite. Writing to PostgreSQL...");
-            BulkUpsertScriptures(scriptures, targetDbConnection);
-            Console.WriteLine("SQLite import completed successfully.");
-        }
-
-        private static void ExportToJson(string targetPath, string sourceDbConnection)
-        {
-            Console.WriteLine("Reading scriptures from PostgreSQL database...");
-            using var connection = new NpgsqlConnection(sourceDbConnection);
-            var repository = connection.As<IScriptureRepository>();
-            var scriptures = repository.GetAllScriptures();
-
-            Console.WriteLine($"Retrieved {scriptures.Count} scriptures. Writing to JSON file...");
-            
-            var directory = Path.GetDirectoryName(targetPath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            string jsonContent = JsonSerializer.Serialize(scriptures, new JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
-
-            File.WriteAllText(targetPath, jsonContent);
-            Console.WriteLine($"Export completed successfully. Saved to: {targetPath}");
-        }
-
-        private static void BulkUpsertScriptures(List<Scripture> scriptures, string targetDbConnection)
-        {
-            using var connection = new NpgsqlConnection(targetDbConnection);
-            connection.Open();
-            
-            var repository = connection.As<IScriptureRepository>();
-
-            using var transaction = connection.BeginTransaction();
-            try
-            {
-                foreach (var scripture in scriptures)
-                {
-                    repository.InsertOrUpdateScripture(scripture);
-                }
-                transaction.Commit();
-                Console.WriteLine($"Upserted {scriptures.Count} scriptures in a single transaction transaction.");
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Inline interface mapped using Insight.Database.
-    /// Maps custom SQL statements directly to the target schema structure.
-    /// </summary>
-    public interface IScriptureRepository
-    {
-        [Sql(@"
-            INSERT INTO scriptures (
-                id, title, source, category, verse, 
-                transliteration_default, translation_default_english, translation_default_hindi
-            ) VALUES (
-                @Id, @Title, @Source, @Category, @Verse, 
-                @TransliterationDefault, @TranslationDefaultEnglish, @TranslationDefaultHindi
-            ) ON CONFLICT (id) DO UPDATE SET 
-                title = EXCLUDED.title, 
-                source = EXCLUDED.source, 
-                category = EXCLUDED.category, 
-                verse = EXCLUDED.verse, 
-                transliteration_default = EXCLUDED.transliteration_default, 
-                translation_default_english = EXCLUDED.translation_default_english, 
-                translation_default_hindi = EXCLUDED.translation_default_hindi")]
-        void InsertOrUpdateScripture(Scripture scripture);
-
-        [Sql(@"
-            SELECT 
-                id AS Id, 
-                title AS Title, 
-                source AS Source, 
-                category AS Category, 
-                verse AS Verse, 
-                transliteration_default AS TransliterationDefault, 
-                translation_default_english AS TranslationDefaultEnglish, 
-                translation_default_hindi AS TranslationDefaultHindi 
-            FROM scriptures")]
-        List<Scripture> GetAllScriptures();
     }
 }

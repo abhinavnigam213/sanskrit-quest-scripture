@@ -1,4 +1,6 @@
 <Solution>
   <Project Path="SanskritQuest.Database.Migrations/SanskritQuest.Database.Migrations.csproj" />
   <Project Path="SanskritQuest.Database.Tools/SanskritQuest.Database.Tools.csproj" />
+  <Project Path="SanskritQuest.Database.Translation/SanskritQuest.Database.Translation.csproj" />
+  <Project Path="SanskritQuest.Database.Translator/SanskritQuest.Database.Translator.csproj" />
 </Solution>

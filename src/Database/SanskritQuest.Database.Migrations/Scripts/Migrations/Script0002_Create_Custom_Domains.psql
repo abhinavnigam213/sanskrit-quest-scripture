@@ -1,15 +1,16 @@
 -- Script 0002: Create custom verification domains
--- Localized Description Schema (requires 'en' and 'hi' keys containing text descriptions)
+-- Localized Description Schema (requires 'en' and 'hi' keys containing text descriptions or null)
 CREATE DOMAIN scripture.localized_description AS JSONB CHECK (
     jsonb_typeof(VALUE) = 'object' 
-    AND VALUE ? 'en' AND jsonb_typeof(VALUE -> 'en') = 'string'
-    AND VALUE ? 'hi' AND jsonb_typeof(VALUE -> 'hi') = 'string'
+    AND VALUE ? 'en' AND jsonb_typeof(VALUE -> 'en') IN ('string', 'null')
+    AND VALUE ? 'hi' AND jsonb_typeof(VALUE -> 'hi') IN ('string', 'null')
 );
 
 -- Localized Verse Data & Word Breakdown Schema
 CREATE DOMAIN scripture.localized_verse_content AS JSONB CHECK (
     jsonb_typeof(VALUE) = 'object' 
-    AND VALUE ? 'translation_en' AND jsonb_typeof(VALUE -> 'translation_en') = 'string'
-    AND VALUE ? 'translation_hi' AND jsonb_typeof(VALUE -> 'translation_hi') = 'string'
+    AND VALUE ? 'translation_en' AND jsonb_typeof(VALUE -> 'translation_en') IN ('string', 'null')
+    AND VALUE ? 'translation_hi' AND jsonb_typeof(VALUE -> 'translation_hi') IN ('string', 'null')
     AND VALUE ? 'word_breakdown' AND jsonb_typeof(VALUE -> 'word_breakdown') = 'array'
 );
+
