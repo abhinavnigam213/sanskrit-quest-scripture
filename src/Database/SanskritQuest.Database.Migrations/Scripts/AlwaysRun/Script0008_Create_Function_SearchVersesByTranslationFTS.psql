@@ -1,0 +1,101 @@
+-- Script 0008: Create scripture.SearchVersesByTranslationFTS function returning a table
+-- ========================================================================
+DROP FUNCTION IF EXISTS scripture.SearchVersesByTranslationFTS(TEXT, INT, VARCHAR(20));
+DROP FUNCTION IF EXISTS scripture.SearchVersesByTranslationFTS(TEXT, INT, VARCHAR(20), INT);
+
+CREATE OR REPLACE FUNCTION scripture.SearchVersesByTranslationFTS(
+    p_query_text TEXT,
+    p_max_rows INT DEFAULT 10,
+    p_translation_lang VARCHAR(20) DEFAULT 'both',
+    p_scripture_id INT DEFAULT NULL
+)
+RETURNS TABLE (
+    rank REAL,
+    verse_id INT,
+    verse_number VARCHAR(50),
+    verse_type VARCHAR(50),
+    content_sanskrit TEXT,
+    translation_en TEXT,
+    translation_hi TEXT,
+    word_breakdown JSONB,
+    source_id INT,
+    search_weight INT,
+    verse_meta_tags JSONB,
+    hierarchy_id INT,
+    hierarchy_parent_id INT,
+    hierarchy_local_label VARCHAR(100),
+    hierarchy_path TEXT,
+    hierarchy_node_type VARCHAR(50),
+    hierarchy_titles JSONB,
+    hierarchy_description JSONB,
+    hierarchy_meta_tags JSONB,
+    scripture_id INT,
+    scripture_code VARCHAR(100),
+    scripture_titles JSONB,
+    scripture_description JSONB,
+    scripture_meta_tags JSONB
+)
+LANGUAGE sql
+AS $$
+    SELECT 
+        CASE 
+            WHEN COALESCE(LOWER(p_translation_lang), 'both') = 'english' THEN
+                ts_rank(to_tsvector('english', COALESCE(v.verse_data->>'translation_en', '')), websearch_to_tsquery('english', p_query_text))
+            WHEN COALESCE(LOWER(p_translation_lang), 'both') = 'hindi' THEN
+                ts_rank(to_tsvector('simple', COALESCE(v.verse_data->>'translation_hi', '')), websearch_to_tsquery('simple', p_query_text))
+            ELSE
+                GREATEST(
+                    ts_rank(to_tsvector('english', COALESCE(v.verse_data->>'translation_en', '')), websearch_to_tsquery('english', p_query_text)),
+                    ts_rank(to_tsvector('simple', COALESCE(v.verse_data->>'translation_hi', '')), websearch_to_tsquery('simple', p_query_text))
+                )
+        END AS rank,
+        v.verse_id,
+        v.verse_number,
+        v.verse_type,
+        v.content_sanskrit,
+        v.verse_data->>'translation_en' AS translation_en,
+        v.verse_data->>'translation_hi' AS translation_hi,
+        v.verse_data->'word_breakdown' AS word_breakdown,
+        v.source_id,
+        v.search_weight,
+        v.meta_tags AS verse_meta_tags,
+        h.hierarchy_id,
+        h.parent_id AS hierarchy_parent_id,
+        h.local_label AS hierarchy_local_label,
+        h.path::text AS hierarchy_path,
+        h.node_type AS hierarchy_node_type,
+        h.titles AS hierarchy_titles,
+        h.description AS hierarchy_description,
+        h.meta_tags AS hierarchy_meta_tags,
+        s.scripture_id,
+        s.code AS scripture_code,
+        s.titles AS scripture_titles,
+        s.description AS scripture_description,
+        s.meta_tags AS scripture_meta_tags
+    FROM scripture.verses v
+    JOIN scripture.hierarchy h ON v.hierarchy_id = h.hierarchy_id
+    JOIN scripture.scriptures s ON h.scripture_id = s.scripture_id
+    WHERE 
+        (
+            (
+                COALESCE(LOWER(p_translation_lang), 'both') = 'english' AND
+                to_tsvector('english', COALESCE(v.verse_data->>'translation_en', '')) @@ websearch_to_tsquery('english', p_query_text)
+            ) OR (
+                COALESCE(LOWER(p_translation_lang), 'both') = 'hindi' AND
+                to_tsvector('simple', COALESCE(v.verse_data->>'translation_hi', '')) @@ websearch_to_tsquery('simple', p_query_text)
+            ) OR (
+                COALESCE(LOWER(p_translation_lang), 'both') NOT IN ('english', 'hindi') AND
+                (
+                    to_tsvector('english', COALESCE(v.verse_data->>'translation_en', '')) @@ websearch_to_tsquery('english', p_query_text) OR
+                    to_tsvector('simple', COALESCE(v.verse_data->>'translation_hi', '')) @@ websearch_to_tsquery('simple', p_query_text)
+                )
+            )
+        )
+        AND (
+            p_scripture_id IS NULL
+            OR NOT EXISTS (SELECT 1 FROM scripture.scriptures WHERE scripture_id = p_scripture_id)
+            OR s.scripture_id = p_scripture_id
+        )
+    ORDER BY rank DESC, v.search_weight DESC, v.verse_id ASC
+    LIMIT COALESCE(p_max_rows, 10);
+$$;

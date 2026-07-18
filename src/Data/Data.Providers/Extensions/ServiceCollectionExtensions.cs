@@ -10,7 +10,9 @@ public static class ServiceCollectionExtensions
 	public static IServiceCollection AddDataProviders(this IServiceCollection services)
 	{
 		PostgreSQLInsightDbProvider.RegisterProvider();
+
 		services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
+		services.AddSingleton<IScripturesDataProvider, ScripturesDataProvider>();
 		services.AddSingleton<IDictionaryDataProvider, DictionaryDataProvider>();
 		services.AddSingleton<ILocalDataSetsProvider, LocalDataSetsProvider>();
 		return services;

@@ -1,0 +1,3 @@
+-- Script 0007: Create GIN index on content_sanskrit for FTS search
+-- ========================================================================
+CREATE INDEX IF NOT EXISTS idx_verses_fts_sa ON scripture.verses USING gin (to_tsvector('simple', COALESCE(content_sanskrit, '')));

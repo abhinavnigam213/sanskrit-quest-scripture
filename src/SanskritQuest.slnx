@@ -12,6 +12,7 @@
   <Folder Name="/Data/">
     <Project Path="Data/Data.Contracts/Data.Contracts.csproj" />
     <Project Path="Data/Data.Providers/Data.Providers.csproj" />
+    <Project Path="Data/Data.Providers.Tests/Data.Providers.Tests.csproj" />
     <Project Path="Data/Data.TestConsole/Data.TestConsole.csproj" Id="097d23f9-3356-4848-b346-7ef50cd7d786" />
   </Folder>
   <Folder Name="/Services/">
