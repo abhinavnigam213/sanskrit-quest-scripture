@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\Common\Common.Configuration\Common.Configuration.csproj" />
     <ProjectReference Include="..\..\Common\Common.Utilities\Common.Utilities.csproj" />
     <ProjectReference Include="..\Data.Contracts\Data.Contracts.csproj" />
+    <ProjectReference Include="..\..\Common\Common.Contracts\Common.Contracts.csproj" />
   </ItemGroup> 
 
   <ItemGroup>

@@ -17,7 +17,7 @@ RETURNS TABLE (
     content_sanskrit TEXT,
     translation_en TEXT,
     translation_hi TEXT,
-    word_breakdown JSONB,
+    word_by_word_breakdown JSONB,
     source_id INT,
     search_weight INT,
     verse_meta_tags JSONB,
@@ -31,6 +31,7 @@ RETURNS TABLE (
     hierarchy_meta_tags JSONB,
     scripture_id INT,
     scripture_code VARCHAR(100),
+    scripture_author JSONB,
     scripture_titles JSONB,
     scripture_description JSONB,
     scripture_meta_tags JSONB
@@ -55,7 +56,7 @@ AS $$
         v.content_sanskrit,
         v.verse_data->>'translation_en' AS translation_en,
         v.verse_data->>'translation_hi' AS translation_hi,
-        v.verse_data->'word_breakdown' AS word_breakdown,
+        v.verse_data->'word_by_word_breakdown' AS word_by_word_breakdown,
         v.source_id,
         v.search_weight,
         v.meta_tags AS verse_meta_tags,
@@ -69,6 +70,7 @@ AS $$
         h.meta_tags AS hierarchy_meta_tags,
         s.scripture_id,
         s.code AS scripture_code,
+        s.author AS scripture_author,
         s.titles AS scripture_titles,
         s.description AS scripture_description,
         s.meta_tags AS scripture_meta_tags

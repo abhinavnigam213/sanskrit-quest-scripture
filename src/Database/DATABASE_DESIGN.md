@@ -66,12 +66,33 @@ CREATE DOMAIN scripture.localized_description AS JSONB CHECK (
     AND VALUE ? 'hi' AND jsonb_typeof(VALUE -> 'hi') = 'string'
 );
 
+-- Helper function to validate word breakdown structure:
+-- Each element must be an object containing sanskrit_word (string),
+-- english_meaning (string or null), and hindi_meaning (string or null).
+CREATE OR REPLACE FUNCTION scripture.fn_validate_word_by_word_breakdown(p_breakdown JSONB)
+RETURNS BOOLEAN AS $$
+BEGIN
+    IF jsonb_typeof(p_breakdown) <> 'array' THEN
+        RETURN FALSE;
+    END IF;
+    
+    RETURN NOT EXISTS (
+        SELECT 1 
+        FROM jsonb_array_elements(p_breakdown) AS elem
+        WHERE jsonb_typeof(elem) <> 'object'
+           OR NOT (elem ? 'sanskrit_word' AND jsonb_typeof(elem -> 'sanskrit_word') = 'string')
+           OR NOT (elem ? 'english_meaning' AND jsonb_typeof(elem -> 'english_meaning') IN ('string', 'null'))
+           OR NOT (elem ? 'hindi_meaning' AND jsonb_typeof(elem -> 'hindi_meaning') IN ('string', 'null'))
+    );
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 -- Localized Verse Data & Word Breakdown Schema
 CREATE DOMAIN scripture.localized_verse_content AS JSONB CHECK (
     jsonb_typeof(VALUE) = 'object' 
     AND VALUE ? 'translation_en' AND jsonb_typeof(VALUE -> 'translation_en') = 'string'
     AND VALUE ? 'translation_hi' AND jsonb_typeof(VALUE -> 'translation_hi') = 'string'
-    AND VALUE ? 'word_breakdown' AND jsonb_typeof(VALUE -> 'word_breakdown') = 'array'
+    AND VALUE ? 'word_by_word_breakdown' AND scripture.fn_validate_word_by_word_breakdown(VALUE -> 'word_by_word_breakdown')
 );
 
 -- ========================================================================
@@ -1023,7 +1044,7 @@ INSERT INTO raw_staging.scripture_dump (source_id, target_scripture_name, raw_fo
 INSERT INTO scripture.verses (verse_id, hierarchy_id, verse_number, verse_type, content_sanskrit, verse_data, source_id, search_weight, meta_tags) VALUES 
 (1, 2, '2.47', 'Shloka', 
  'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।', 
- '{ "translation_en": "You have a right to perform your prescribed duty, but you are not entitled to the fruits of action.", "translation_hi": "तुम्हारा अधिकार केवल कर्म करने पर है, उसके फलों पर कभी नहीं।", "word_breakdown": [ {"word_sanskrit": "कर्मणि", "word_iast": "karmaṇi", "meaning_en": "in action / duty", "meaning_hi": "कर्म में"}, {"word_sanskrit": "एव", "word_iast": "eva", "meaning_en": "only / alone", "meaning_hi": "ही"}, {"word_sanskrit": "अधिकारः", "word_iast": "adhikāraḥ", "meaning_en": "right / jurisdiction", "meaning_hi": "अधिकार"}, {"word_sanskrit": "ते", "word_iast": "te", "meaning_en": "your", "meaning_hi": "तुम्हारा"} ] }'::jsonb, 
+ '{ "translation_en": "You have a right to perform your prescribed duty, but you are not entitled to the fruits of action.", "translation_hi": "तुम्हारा अधिकार केवल कर्म करने पर है, उसके फलों पर कभी नहीं।", "word_by_word_breakdown": [ {"sanskrit_word": "कर्मणि", "english_meaning": "in action / duty", "hindi_meaning": "कर्म में"}, {"sanskrit_word": "एव", "english_meaning": "only / alone", "hindi_meaning": "ही"}, {"sanskrit_word": "अधिकारः", "english_meaning": "right / jurisdiction", "hindi_meaning": "अधिकार"}, {"sanskrit_word": "ते", "english_meaning": "your", "hindi_meaning": "तुम्हारा"} ] }'::jsonb, 
  1, 100, '["Karma", "NishkamaKarma", "Duty"]'::jsonb)
 ON CONFLICT (verse_id) DO NOTHING;
 

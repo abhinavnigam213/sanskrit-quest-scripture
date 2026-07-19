@@ -12,6 +12,7 @@
     <ProjectReference Include="..\..\Data\Data.Providers\Data.Providers.csproj" />
     <ProjectReference Include="..\..\Services\Services.AIService\Services.AIService.csproj" />
     <ProjectReference Include="..\..\Common\Common.Utilities\Common.Utilities.csproj" />
+    <ProjectReference Include="..\..\Common\Common.Contracts\Common.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

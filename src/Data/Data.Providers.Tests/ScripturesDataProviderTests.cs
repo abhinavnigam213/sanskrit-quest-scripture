@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
+using SanskritQuest.Common.Contracts;
 using SanskritQuest.Data.Contracts;
 using SanskritQuest.Data.Providers;
 using Xunit;
@@ -53,9 +54,9 @@ namespace SanskritQuest.Data.Providers.Tests
 		{
 			// Arrange
 			int scriptureId = 5;
-			var expected = new List<DbScriptureDetail>
+			var expected = new List<ScriptureDetail>
 			{
-				new DbScriptureDetail { ScriptureId = 5, ScriptureCode = "Ramayana" }
+				new ScriptureDetail { ScriptureId = 5, ScriptureCode = "Ramayana" }
 			};
 			_mockRepo.Setup(r => r.GetScriptureDetailsAsync(scriptureId)).ReturnsAsync(expected);
 
@@ -74,9 +75,9 @@ namespace SanskritQuest.Data.Providers.Tests
 		{
 			// Arrange
 			int verseId = 42;
-			var expected = new List<DbVerseDetail>
+			var expected = new List<VerseDetail>
 			{
-				new DbVerseDetail { VerseId = verseId, VerseNumber = "1.1" }
+				new VerseDetail { VerseId = verseId, VerseNumber = "1.1" }
 			};
 			_mockRepo.Setup(r => r.GetVersesDetailsAsync(verseId)).ReturnsAsync(expected);
 
@@ -95,7 +96,7 @@ namespace SanskritQuest.Data.Providers.Tests
 		{
 			// Arrange
 			int verseId = 999;
-			var expected = new List<DbVerseDetail>();
+			var expected = new List<VerseDetail>();
 			_mockRepo.Setup(r => r.GetVersesDetailsAsync(verseId)).ReturnsAsync(expected);
 
 			// Act
@@ -111,9 +112,9 @@ namespace SanskritQuest.Data.Providers.Tests
 		{
 			// Arrange
 			int hierarchyId = 10;
-			var expected = new List<DbVerseIdForHierarchy>
+			var expected = new List<VerseIdForHierarchy>
 			{
-				new DbVerseIdForHierarchy { VerseId = 101, ContentSanskrit = "राम" }
+				new VerseIdForHierarchy { VerseId = 101, ContentSanskrit = "राम" }
 			};
 			_mockRepo.Setup(r => r.GetAllVersesIdForHierarchyAsync(hierarchyId)).ReturnsAsync(expected);
 
@@ -134,9 +135,9 @@ namespace SanskritQuest.Data.Providers.Tests
 			string query = "धर्म";
 			int maxRows = 10;
 			int? scriptureId = 1;
-			var expected = new List<DbVerseSearchResult>
+			var expected = new List<VerseSearchResult>
 			{
-				new DbVerseSearchResult { VerseId = 201, ContentSanskrit = "धर्मक्षेत्रे" }
+				new VerseSearchResult { VerseId = 201, ContentSanskrit = "धर्मक्षेत्रे" }
 			};
 			_mockRepo.Setup(r => r.SearchVersesBySanskritFTSAsync(query, maxRows, scriptureId)).ReturnsAsync(expected);
 
@@ -160,7 +161,7 @@ namespace SanskritQuest.Data.Providers.Tests
 			string query = "righteousness";
 			int maxRows = 15;
 			int? scriptureId = null;
-			var expected = new List<DbVerseSearchResult>();
+			var expected = new List<VerseSearchResult>();
 			_mockRepo.Setup(r => r.SearchVersesByTranslationFTSAsync(query, maxRows, expectedLangStr, scriptureId)).ReturnsAsync(expected);
 
 			// Act

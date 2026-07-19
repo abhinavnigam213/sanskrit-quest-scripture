@@ -155,7 +155,7 @@ namespace SanskritQuest.Database.Tools.Ingestion
                     {
                         { "translation_en", explanationEn },
                         { "translation_hi", explanationHi },
-                        { "word_breakdown", Array.Empty<object>() }
+                        { "word_by_word_breakdown", Array.Empty<object>() }
                     };
                     string verseDataJson = JsonSerializer.Serialize(verseData);
 

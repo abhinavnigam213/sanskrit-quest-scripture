@@ -6,11 +6,34 @@ CREATE DOMAIN scripture.localized_description AS JSONB CHECK (
     AND VALUE ? 'hi' AND jsonb_typeof(VALUE -> 'hi') IN ('string', 'null')
 );
 
+-- Helper function to validate word breakdown structure:
+-- Each element must be an object containing:
+--   - sanskrit_word (string)
+--   - english_meaning (string or null)
+--   - hindi_meaning (string or null)
+CREATE OR REPLACE FUNCTION scripture.fn_validate_word_by_word_breakdown(p_breakdown JSONB)
+RETURNS BOOLEAN AS $$
+BEGIN
+    IF jsonb_typeof(p_breakdown) <> 'array' THEN
+        RETURN FALSE;
+    END IF;
+    
+    RETURN NOT EXISTS (
+        SELECT 1 
+        FROM jsonb_array_elements(p_breakdown) AS elem
+        WHERE jsonb_typeof(elem) <> 'object'
+           OR NOT (elem ? 'sanskrit_word' AND jsonb_typeof(elem -> 'sanskrit_word') = 'string')
+           OR NOT (elem ? 'english_meaning' AND jsonb_typeof(elem -> 'english_meaning') IN ('string', 'null'))
+           OR NOT (elem ? 'hindi_meaning' AND jsonb_typeof(elem -> 'hindi_meaning') IN ('string', 'null'))
+    );
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 -- Localized Verse Data & Word Breakdown Schema
 CREATE DOMAIN scripture.localized_verse_content AS JSONB CHECK (
     jsonb_typeof(VALUE) = 'object' 
     AND VALUE ? 'translation_en' AND jsonb_typeof(VALUE -> 'translation_en') IN ('string', 'null')
     AND VALUE ? 'translation_hi' AND jsonb_typeof(VALUE -> 'translation_hi') IN ('string', 'null')
-    AND VALUE ? 'word_breakdown' AND jsonb_typeof(VALUE -> 'word_breakdown') = 'array'
+    AND VALUE ? 'word_by_word_breakdown' AND scripture.fn_validate_word_by_word_breakdown(VALUE -> 'word_by_word_breakdown')
 );
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using SanskritQuest.Common.Contracts;
 using SanskritQuest.Data.Contracts;
 
 namespace Data.TestConsole
@@ -15,24 +16,24 @@ namespace Data.TestConsole
 			Console.WriteLine($"Found {scriptures.Count} scriptures.");
 			foreach (var s in scriptures.Take(3))
 			{
-				Console.WriteLine($" - ID: {s.ScriptureId}, Code: {s.Code}, English Title: {s.TitleEn}");
+				Console.WriteLine($" - ID: {s.ScriptureId}, Code: {s.Code}, English Title: {s.Titles?.En}");
 			}
 			return scriptures;
 		}
 
-		public static async Task<IEnumerable<DbScriptureDetail>> TestGetScriptureDetailsAsync(IScripturesDataProvider provider, int scriptureId, string code)
+		public static async Task<IEnumerable<ScriptureDetail>> TestGetScriptureDetailsAsync(IScripturesDataProvider provider, int scriptureId, string code)
 		{
 			Console.WriteLine($"\n[2] Testing GetScriptureDetailsAsync for scripture ID {scriptureId} ({code})...");
 			var details = (await provider.GetScriptureDetailsAsync(scriptureId)).ToList();
 			Console.WriteLine($"Found {details.Count} hierarchy nodes.");
 			foreach (var d in details.Take(5))
 			{
-				Console.WriteLine($" - Node ID: {d.HierarchyId}, Label: {d.LocalLabel}, Type: {d.NodeType}, English Title: {d.HierarchyTitleEn}, Path: {d.Path}");
+				Console.WriteLine($" - Node ID: {d.HierarchyId}, Label: {d.LocalLabel}, Type: {d.NodeType}, English Title: {d.HierarchyTitles?.En}, Path: {d.Path}");
 			}
 			return details;
 		}
 
-		public static async Task<IEnumerable<DbVerseIdForHierarchy>> TestGetAllVersesIdForHierarchyAsync(IScripturesDataProvider provider, int hierarchyId, string localLabel)
+		public static async Task<IEnumerable<VerseIdForHierarchy>> TestGetAllVersesIdForHierarchyAsync(IScripturesDataProvider provider, int hierarchyId, string localLabel)
 		{
 			Console.WriteLine($"\n[3] Testing GetAllVersesIdForHierarchyAsync for hierarchy ID {hierarchyId} ({localLabel})...");
 			var verseIds = (await provider.GetAllVersesIdForHierarchyAsync(hierarchyId)).ToList();
@@ -44,7 +45,7 @@ namespace Data.TestConsole
 			return verseIds;
 		}
 
-		public static async Task<DbVerseDetail?> TestGetVerseDetailsAsync(IScripturesDataProvider provider, int verseId)
+		public static async Task<VerseDetail?> TestGetVerseDetailsAsync(IScripturesDataProvider provider, int verseId)
 		{
 			Console.WriteLine($"\n[4] Testing GetVerseDetailsAsync for verse ID {verseId}...");
 			var verseDetails = await provider.GetVerseDetailsAsync(verseId);
@@ -54,7 +55,7 @@ namespace Data.TestConsole
 				Console.WriteLine($" - Verse Type: {verseDetails.VerseType}");
 				Console.WriteLine($" - Sanskrit Content: {verseDetails.ContentSanskrit}");
 				Console.WriteLine($" - Translation (EN): {verseDetails.VerseData?.TranslationEn}");
-				Console.WriteLine($" - Word Breakdown count: {verseDetails.VerseData?.WordBreakdown?.Count ?? 0}");
+				Console.WriteLine($" - Word Breakdown count: {verseDetails.WordByWordBreakdown?.Count ?? 0}");
 			}
 			else
 			{
@@ -63,7 +64,7 @@ namespace Data.TestConsole
 			return verseDetails;
 		}
 
-		public static async Task<IEnumerable<DbVerseSearchResult>> TestSearchVersesBySanskritFTSAsync(IScripturesDataProvider provider, string query)
+		public static async Task<IEnumerable<VerseSearchResult>> TestSearchVersesBySanskritFTSAsync(IScripturesDataProvider provider, string query)
 		{
 			Console.WriteLine($"\n[5] Testing SearchVersesBySanskritFTSAsync query: '{query}'...");
 			var results = (await provider.SearchVersesBySanskritFTSAsync(query, 3)).ToList();
@@ -75,7 +76,7 @@ namespace Data.TestConsole
 			return results;
 		}
 
-		public static async Task<IEnumerable<DbVerseSearchResult>> TestSearchVersesByTranslationFTSAsync(IScripturesDataProvider provider, string query)
+		public static async Task<IEnumerable<VerseSearchResult>> TestSearchVersesByTranslationFTSAsync(IScripturesDataProvider provider, string query)
 		{
 			Console.WriteLine($"\n[6] Testing SearchVersesByTranslationFTSAsync query: '{query}'...");
 			var results = (await provider.SearchVersesByTranslationFTSAsync(query, 3, TranslationLanguage.English)).ToList();

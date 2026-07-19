@@ -34,6 +34,7 @@ CREATE TABLE scripture.deities (
 CREATE TABLE scripture.scriptures (
     scripture_id SERIAL PRIMARY KEY,
     code VARCHAR(100) UNIQUE NOT NULL, -- e.g., 'Gita', 'Ramayana', 'Rigveda'
+    author scripture.localized_description, -- Localized author name: {"en": "...", "hi": "..."}
     titles JSONB NOT NULL,             -- Localized titles: {"en": "Bhagavad Gita", "hi": "भगवद्गीता", "sa": "श्रीमद्भगवद्गीता"}
     description scripture.localized_description NOT NULL,
     category_id INT REFERENCES scripture.categories(category_id) ON DELETE RESTRICT,

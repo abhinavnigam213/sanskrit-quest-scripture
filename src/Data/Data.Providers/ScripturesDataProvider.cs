@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Insight.Database;
+using SanskritQuest.Common.Contracts;
 using SanskritQuest.Data.Contracts;
 
 namespace SanskritQuest.Data.Providers
@@ -37,7 +38,7 @@ namespace SanskritQuest.Data.Providers
 			}
 		}
 
-		public async Task<IEnumerable<DbScriptureDetail>> GetScriptureDetailsAsync(int scriptureId, CancellationToken cancellationToken = default)
+		public async Task<IEnumerable<ScriptureDetail>> GetScriptureDetailsAsync(int scriptureId, CancellationToken cancellationToken = default)
 		{
 			using (var conn = _connFactory.GetDefaultDbConnection())
 			{
@@ -45,7 +46,7 @@ namespace SanskritQuest.Data.Providers
 			}
 		}
 
-		public async Task<DbVerseDetail?> GetVerseDetailsAsync(int verseId, CancellationToken cancellationToken = default)
+		public async Task<VerseDetail?> GetVerseDetailsAsync(int verseId, CancellationToken cancellationToken = default)
 		{
 			using (var conn = _connFactory.GetDefaultDbConnection())
 			{
@@ -54,7 +55,7 @@ namespace SanskritQuest.Data.Providers
 			}
 		}
 
-		public async Task<IEnumerable<DbVerseIdForHierarchy>> GetAllVersesIdForHierarchyAsync(int hierarchyId, CancellationToken cancellationToken = default)
+		public async Task<IEnumerable<VerseIdForHierarchy>> GetAllVersesIdForHierarchyAsync(int hierarchyId, CancellationToken cancellationToken = default)
 		{
 			using (var conn = _connFactory.GetDefaultDbConnection())
 			{
@@ -62,7 +63,7 @@ namespace SanskritQuest.Data.Providers
 			}
 		}
 
-		public async Task<IEnumerable<DbVerseSearchResult>> SearchVersesBySanskritFTSAsync(string queryText, int maxRows = 10, int? scriptureId = null, CancellationToken cancellationToken = default)
+		public async Task<IEnumerable<VerseSearchResult>> SearchVersesBySanskritFTSAsync(string queryText, int maxRows = 10, int? scriptureId = null, CancellationToken cancellationToken = default)
 		{
 			using (var conn = _connFactory.GetDefaultDbConnection())
 			{
@@ -70,7 +71,7 @@ namespace SanskritQuest.Data.Providers
 			}
 		}
 
-		public async Task<IEnumerable<DbVerseSearchResult>> SearchVersesByTranslationFTSAsync(string queryText, int maxRows = 10, TranslationLanguage translationLang = TranslationLanguage.Both, int? scriptureId = null, CancellationToken cancellationToken = default)
+		public async Task<IEnumerable<VerseSearchResult>> SearchVersesByTranslationFTSAsync(string queryText, int maxRows = 10, TranslationLanguage translationLang = TranslationLanguage.Both, int? scriptureId = null, CancellationToken cancellationToken = default)
 		{
 			string langStr = translationLang.ToString().ToLowerInvariant();
 

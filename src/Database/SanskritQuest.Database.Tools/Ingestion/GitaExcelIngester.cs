@@ -130,7 +130,7 @@ namespace SanskritQuest.Database.Tools.Ingestion
                     {
                         { "translation_en", englishText },
                         { "translation_hi", hindiText },
-                        { "word_breakdown", Array.Empty<object>() }
+                        { "word_by_word_breakdown", Array.Empty<object>() }
                     };
                     string verseDataJson = JsonSerializer.Serialize(verseData);
 

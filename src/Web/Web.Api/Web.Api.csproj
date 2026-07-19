@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\Business\Business.Providers\Business.Providers.csproj" />
     <ProjectReference Include="..\..\Common\Common.Configuration\Common.Configuration.csproj" />
     <ProjectReference Include="..\..\Common\Common.Security\Common.Security.csproj" />
+    <ProjectReference Include="..\..\Common\Common.Contracts\Common.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

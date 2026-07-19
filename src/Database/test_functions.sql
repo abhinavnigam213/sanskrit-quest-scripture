@@ -3,49 +3,70 @@
 -- ========================================================================
 
 -- 1. EXECUTE: GetAllScripture
--- Retrieves all scriptures with their categories and classes directly.
-SELECT * FROM scripture.GetAllScripture();
+-- Retrieves all scriptures. Shows extraction of localized JSONB fields.
+SELECT 
+    scripture_id, 
+    code, 
+    titles->>'en' AS title_en, 
+    titles->>'hi' AS title_hi,
+    description->>'en' AS desc_en,
+    author->>'en' AS author_en,
+    author->>'hi' AS author_hi
+FROM scripture.GetAllScripture();
 
 
 -- 2. EXECUTE: GetScriptureDetails
 -- Traverses hierarchy nodes and gets verse counts.
--- Takes scripture_id as input and returns a structured table.
-SELECT * FROM scripture.GetScriptureDetails(1);
+-- Shows extracting localized JSONB author and title keys.
+SELECT 
+    scripture_id, 
+    scripture_code, 
+    scripture_author->>'en' AS scripture_author_en,
+    scripture_titles->>'en' AS scripture_title_en,
+    hierarchy_id, 
+    local_label,
+    hierarchy_titles->>'en' AS hierarchy_title_en
+FROM scripture.GetScriptureDetails(1);
 
 
 -- 3. EXECUTE: GetVersesDetails
 -- Retrieves details of a single verse directly as a table row.
--- Takes verse_id as input.
-SELECT * FROM scripture.GetVersesDetails(1);
+-- Extracts scripture author JSONB and word_by_word_breakdown JSONB.
+SELECT 
+    verse_id, 
+    verse_number, 
+    content_sanskrit,
+    scripture_author->>'en' AS scripture_author_en,
+    word_by_word_breakdown
+FROM scripture.GetVersesDetails(1);
 
 
 -- 4. EXECUTE: GetAllVersesIdForHierarchy
 -- Retrieves all verses recursively under a hierarchy node.
--- Takes hierarchy_id as input.
 SELECT * FROM scripture.GetAllVersesIdForHierarchy(1);
 
 
 -- 5. EXECUTE: SearchVersesBySanskritFTS
 -- Performs Full Text Search on Sanskrit shloka.
--- Parameters: query text, max rows (null for no limit), scripture_id (null or invalid for all scriptures)
-SELECT * FROM scripture.SearchVersesBySanskritFTS('कर्मण्येवाधिकारस्ते', 5);
--- Limit search to Gita (scripture_id = 1)
-SELECT * FROM scripture.SearchVersesBySanskritFTS('फलेषु', NULL, 1);
--- Limit search to Ramayana (scripture_id = 2)
-SELECT * FROM scripture.SearchVersesBySanskritFTS('फलेषु', NULL, 2);
--- Invalid scripture ID (999) - falls back to all scriptures
-SELECT * FROM scripture.SearchVersesBySanskritFTS('फलेषु', NULL, 999);
+-- Displays word_by_word_breakdown JSONB and scripture_author JSONB.
+SELECT 
+    rank, 
+    verse_id, 
+    verse_number, 
+    content_sanskrit,
+    scripture_author->>'en' AS author_en,
+    word_by_word_breakdown
+FROM scripture.SearchVersesBySanskritFTS('कर्मण्येवाधिकारस्ते', 5);
 
 
 -- 6. EXECUTE: SearchVersesByTranslationFTS
--- Performs Full Text Search on translations (English, Hindi, or both).
--- Parameters: query text, max rows (null for no limit), translation language ('english', 'hindi', or 'both'), scripture_id
-SELECT * FROM scripture.SearchVersesByTranslationFTS('duty', 10, 'english');
--- Limit search to Gita (scripture_id = 1)
-SELECT * FROM scripture.SearchVersesByTranslationFTS('fruits', NULL, 'both', 1);
--- Limit search to Ramayana (scripture_id = 2)
-SELECT * FROM scripture.SearchVersesByTranslationFTS('fruits', 10, 'both', 2);
--- Invalid scripture ID (999) - falls back to all scriptures
-SELECT * FROM scripture.SearchVersesByTranslationFTS('fruits', 10, 'both', 999);
-
-
+-- Performs Full Text Search on translations.
+-- Displays word_by_word_breakdown JSONB and scripture_author JSONB.
+SELECT 
+    rank, 
+    verse_id, 
+    verse_number, 
+    translation_en,
+    scripture_author->>'en' AS author_en,
+    word_by_word_breakdown
+FROM scripture.SearchVersesByTranslationFTS('duty', 10, 'english');
