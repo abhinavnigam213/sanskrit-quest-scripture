@@ -19,6 +19,8 @@
     <ProjectReference Include="..\..\Common\Common.Utilities\Common.Utilities.csproj" />
     <ProjectReference Include="..\..\Business\Business.Contracts\Business.Contracts.csproj" />
     <ProjectReference Include="..\..\Data\Data.Providers\Data.Providers.csproj" />
+    <ProjectReference Include="..\..\Common\Common.Contracts\Common.Contracts.csproj" />
+    <ProjectReference Include="..\..\Common\Common.Http\Common.Http.csproj" />
   </ItemGroup>
 
 </Project>

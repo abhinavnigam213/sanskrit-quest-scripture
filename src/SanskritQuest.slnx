@@ -5,7 +5,9 @@
   </Folder>
   <Folder Name="/Common/">
     <Project Path="Common/Common.Configuration/Common.Configuration.csproj" />
+    <Project Path="Common/Common.Contracts/Common.Contracts.csproj" />
     <Project Path="Common/Common.Http/Common.Http.csproj" />
+    <Project Path="Common/Common.Http.Tests/Common.Http.Tests.csproj" />
     <Project Path="Common/Common.Security/Common.Security.csproj" />
     <Project Path="Common/Common.Utilities/Common.Utilities.csproj" />
   </Folder>

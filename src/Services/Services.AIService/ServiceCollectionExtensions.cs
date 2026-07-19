@@ -3,7 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenAI;
 using System;
 using System.ClientModel;
+using System.ClientModel.Primitives;
 using SanskritQuest.Data.Providers;
+using SanskritQuest.Common.Http;
 
 namespace SanskritQuest.Services.AIService;
 
@@ -11,6 +13,9 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddAIServices(this IServiceCollection services)
     {
+        // Register Common HTTP Client services
+        services.AddCommonHttp();
+
         var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
         if (!string.IsNullOrEmpty(apiKey))
         {
@@ -20,10 +25,21 @@ public static class ServiceCollectionExtensions
                 {
                     Endpoint = new Uri("https://generativelanguage.googleapis.com/v1beta/openai/")
                 };
-                var openAIClient = new OpenAIClient(new ApiKeyCredential(apiKey), clientOptions);
-                IChatClient chatClient = openAIClient.AsChatClient("gemini-1.5-flash");
-                services.AddSingleton<IChatClient>(chatClient);
-                Console.WriteLine("[Services.AIService] Registered Gemini ChatClient successfully.");
+
+                // Use the common HttpClientFactory to resolve/create HttpClient for AI calls
+                services.AddSingleton<IChatClient>(sp =>
+                {
+                    var httpFactory = sp.GetRequiredService<ICommonHttpClientFactory>();
+                    var httpClient = httpFactory.CreateClient("AIServiceClient");
+
+                    // Configure client options to use custom HttpClient via ClientModel transport
+                    clientOptions.Transport = new HttpClientPipelineTransport(httpClient);
+
+                    var openAIClient = new OpenAIClient(new ApiKeyCredential(apiKey), clientOptions);
+                    return openAIClient.AsChatClient("gemini-1.5-flash");
+                });
+
+                Console.WriteLine("[Services.AIService] Registered Gemini ChatClient with Common HttpClient successfully.");
             }
             catch (Exception ex)
             {
