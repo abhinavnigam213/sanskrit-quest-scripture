@@ -23,6 +23,8 @@ public class Startup
 		services.AddCommonConfiguration(Configuration);
 		services.AddCommonSecurity();
 		services.AddBusinessProviders();
+		// TODO: Remove this mock registration in the future once the actual business layer is implemented.
+		services.AddTransient<SanskritQuest.Web.Api.MockBusiness.IMockScriptureProvider, SanskritQuest.Web.Api.MockBusiness.MockScriptureProvider>();
 
 		// 2. Configure JWT Authentication Services
 		var jwtKey = Configuration["AuthSettings:JwtKey"] ?? "SanskritQuest3.5SuperSecureJWTTokenKeyDoubleStrength999!!!";
