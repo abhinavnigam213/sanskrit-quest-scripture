@@ -2,6 +2,7 @@
   <Folder Name="/Business/">
     <Project Path="Business/Business.Contracts/Business.Contracts.csproj" />
     <Project Path="Business/Business.Providers/Business.Providers.csproj" />
+    <Project Path="Business/Business.Providers.Tests/Business.Providers.Tests.csproj" />
   </Folder>
   <Folder Name="/Common/">
     <Project Path="Common/Common.Configuration/Common.Configuration.csproj" />
