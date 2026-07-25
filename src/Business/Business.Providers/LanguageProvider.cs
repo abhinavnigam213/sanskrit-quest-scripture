@@ -1,14 +1,15 @@
+using System.Threading.Tasks;
 using SanskritQuest.Business.Contracts;
 using SanskritQuest.Data.Contracts;
-using SanskritQuest.Services.AIService;
+using SanskritQuest.Services.AIService.Contracts;
 
 namespace SanskritQuest.Business.Providers;
 
 public class LanguageProvider : ILanguageProvider
 {
-	private readonly AIService _aiService;
+	private readonly ISanskritScholarAIService _aiService;
 
-	public LanguageProvider(AIService aiService)
+	public LanguageProvider(ISanskritScholarAIService aiService)
 	{
 		_aiService = aiService;
 	}

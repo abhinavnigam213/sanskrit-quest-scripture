@@ -18,6 +18,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Common.Http\Common.Http.csproj" />
+    <ProjectReference Include="..\Common.Contracts\Common.Contracts.csproj" />
+    <ProjectReference Include="..\Common.Utilities\Common.Utilities.csproj" />
   </ItemGroup>
 
 </Project>

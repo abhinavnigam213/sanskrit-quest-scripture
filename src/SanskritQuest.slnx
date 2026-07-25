@@ -19,6 +19,8 @@
   </Folder>
   <Folder Name="/Services/">
     <Project Path="Services/Services.AIService/Services.AIService.csproj" />
+    <Project Path="Services/Services.AIService.Tests/Services.AIService.Tests.csproj" />
+    <Project Path="Services/Services.AIService.TestConsole/Services.AIService.TestConsole.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
