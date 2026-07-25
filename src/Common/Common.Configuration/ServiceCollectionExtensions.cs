@@ -28,6 +28,7 @@ namespace SanskritQuest.Common.Configuration
 		{
 			services.BindSingleton<AuthSettings>(configuration.GetSection("AuthSettings"));
 			services.BindSingleton<ConnectionStrings>(configuration.GetSection("ConnectionStrings"));
+			services.BindSingleton<AISettings>(configuration.GetSection("AISettings"));
 			return services;
 		}
 	}

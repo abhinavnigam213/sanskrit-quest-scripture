@@ -1,62 +1,86 @@
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using OpenAI;
-using System;
-using System.ClientModel;
-using System.ClientModel.Primitives;
-using SanskritQuest.Data.Providers;
+using SanskritQuest.Common.Configuration;
 using SanskritQuest.Common.Http;
+using SanskritQuest.Services.AIService.Contracts;
+using SanskritQuest.Services.AIService.Providers;
+using System;
+using System.Linq;
 
 namespace SanskritQuest.Services.AIService;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddAIServices(this IServiceCollection services)
-    {
-        // Register Common HTTP Client services
-        services.AddCommonHttp();
+	public static IServiceCollection AddAIServices(this IServiceCollection services)
+	{
+		return services.AddAIServicesInternal(null);
+	}
 
-        var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
-        if (!string.IsNullOrEmpty(apiKey))
-        {
-            try
-            {
-                var clientOptions = new OpenAIClientOptions
-                {
-                    Endpoint = new Uri("https://generativelanguage.googleapis.com/v1beta/openai/")
-                };
+	public static IServiceCollection AddAIServices(this IServiceCollection services, IConfiguration configuration)
+	{
+		return services.AddAIServicesInternal(configuration);
+	}
 
-                // Use the common HttpClientFactory to resolve/create HttpClient for AI calls
-                services.AddSingleton<IChatClient>(sp =>
-                {
-                    var httpFactory = sp.GetRequiredService<ICommonHttpClientFactory>();
-                    var httpClient = httpFactory.CreateClient("AIServiceClient");
+	private static IServiceCollection AddAIServicesInternal(this IServiceCollection services, IConfiguration? configuration)
+	{
+		// 1. Ensure Common Http dependencies are loaded
+		services.AddCommonHttp();
 
-                    // Configure client options to use custom HttpClient via ClientModel transport
-                    clientOptions.Transport = new HttpClientPipelineTransport(httpClient);
+		// 2. Ensure AISettings is bound if not already present
+		if (!services.Any(d => d.ServiceType == typeof(AISettings)))
+		{
+			services.AddSingleton<AISettings>(sp =>
+			{
+				var config = configuration ?? sp.GetRequiredService<IConfiguration>();
+				var newSettings = new AISettings();
+				config.GetSection("AISettings").Bind(newSettings);
+				return newSettings;
+			});
+		}
 
-                    var openAIClient = new OpenAIClient(new ApiKeyCredential(apiKey), clientOptions);
-                    return openAIClient.AsChatClient("gemini-1.5-flash");
-                });
+		// 3. Register all IAIProviders
+		services.AddSingleton<IAIProvider, GeminiAIProvider>();
+		services.AddSingleton<IAIProvider, OpenAIAIProvider>();
+		services.AddSingleton<IAIProvider, OllamaAIProvider>();
 
-                Console.WriteLine("[Services.AIService] Registered Gemini ChatClient with Common HttpClient successfully.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Services.AIService] Warning: Failed to build AI ChatClient: {ex.Message}");
-            }
-        }
-        else
-        {
-            Console.WriteLine("[Services.AIService] Warning: GEMINI_API_KEY is not defined. Server starting in OFFLINE fallback mode.");
-        }
+		// 4. Register dynamic IChatClient resolver based on AISettings
+		services.AddSingleton<IChatClient>(sp =>
+		{
+			var aiSettings = sp.GetRequiredService<AISettings>();
+			var activeProviderName = aiSettings.ActiveProvider ?? "Gemini";
 
-        // Register AIService using factory method to optionally resolve IChatClient (which can be null in offline mode)
-        services.AddSingleton<AIService>(sp => new AIService(
-            sp.GetService<IChatClient>(),
-            sp.GetRequiredService<SanskritQuest.Data.Contracts.ILocalDataSetsProvider>()
-        ));
+			var providers = sp.GetServices<IAIProvider>();
+			var activeProvider = providers.FirstOrDefault(p => p.ProviderName.Equals(activeProviderName, StringComparison.OrdinalIgnoreCase));
 
-        return services;
-    }
+			if (activeProvider == null)
+			{
+				Console.WriteLine($"[Services.AIService] Warning: AI Provider '{activeProviderName}' is not registered or supported. Starting in offline fallback mode.");
+				return null!;
+			}
+
+			try
+			{
+				return activeProvider.CreateChatClient();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"[Services.AIService] Warning: Failed to build AI ChatClient for '{activeProviderName}': {ex.Message}. Starting in offline fallback mode.");
+				return null!;
+			}
+		});
+
+		// 5. Register SanskritScholarAIService
+		services.AddSingleton<ISanskritScholarAIService>(sp => new SanskritScholarAIService(
+			sp.GetService<IChatClient>(),
+			sp.GetRequiredService<SanskritQuest.Data.Contracts.ILocalDataSetsProvider>()
+		));
+
+		// 6. Register SanskritTranslationAIService
+		services.AddSingleton<ISanskritTranslationAIService>(sp => new SanskritTranslationAIService(
+			sp.GetService<IChatClient>()
+		));
+
+		return services;
+	}
 }

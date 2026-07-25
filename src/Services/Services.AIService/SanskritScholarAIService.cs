@@ -4,19 +4,257 @@ using Microsoft.Extensions.AI;
 using SanskritQuest.Business.Contracts;
 using SanskritQuest.Common.Utilities;
 using SanskritQuest.Data.Contracts;
+using SanskritQuest.Services.AIService.Contracts;
 
 namespace SanskritQuest.Services.AIService;
 
-public class AIService
+public class SanskritScholarAIService : ISanskritScholarAIService
 {
+	#region Prompts and Constants
+
+	private const string SYSTEM_PROMPT_TRANSLATION =
+		"You are an expert philologist, Indologist, and scriptural scholar specializing in Sanskrit scriptures (Vedas, Upanishads, Bhagavad Gita, Puranas, Ramayana) as well as Hindi and English scriptural commentaries.\n" +
+		"Translate text precisely. When dealing with Sanskrit, respect the philosophical nuances and render exact meanings.\n" +
+		"Provide the output strictly in the specified JSON structure.";
+
+	private const string SYSTEM_PROMPT_TRANSLITERATION =
+		"You are a helper specializing in Indic script transliteration.\n" +
+		"Your goal is to transliterate characters purely phonetically/orthographically between Devanagari (देवानागरी), IAST (International Alphabet of Sanskrit Transliteration with diacritics), ITRANS (ASCII), SLP1 (Sanskrit Library Phonetic basic ASCII encoding standard), and English Phonetic (for chanting/singing).\n" +
+		"Do NOT translate the meaning, only convert the phonetic representation from one system to another.\n" +
+		"In SLP1, map retroflex consonants to w, W, q, Q, R, sibilants to S/z, nasals to N/Y/R/n/m, and vowels and anusvara according to Sanskrit Library SLP1 specs.\n" +
+		"Provide the output strictly in JSON.";
+
+	private const string SYSTEM_PROMPT_SCRIPTURE_ANALYSIS =
+		"You are a high-level Sanatana Dharma and Sanskrit scripture scholar.\n" +
+		"Analyze the provided Sanskrit/Hindi/English scripture.\n\n" +
+		"CRITICAL WORD VS VERSE CONSTRAINTS:\n" +
+		"- If the input text is a single word, a small compound, or a short theological/philosophical term (typically 1 to 3 words, e.g., 'योगः', 'ज्ञानम्', 'कर्म', 'आत्मनः') rather than an actual complete scripture verse or a clear multi-word verse fragment:\n" +
+		"  1. Do NOT try to reconstruct a completely different verse or return translations/commentary of an unrelated longer scripture (for example, do NOT reconstruct and return BG 2.48 'samatvaṁ yoga ucyate...' if the user only entered the single term 'योगः').\n" +
+		"  2. Keep the \"verse\" field equal to the input word itself (or its clean Devanagari form if transliterated).\n" +
+		"  3. Treat the input as a single theological/intellectual concept or keyword. Refer to its context/source if provided (e.g. 'Gita' or 'Vedas'), identifying it as a 'Scriptural Concept' or 'Key Term' in the \"identifiedSource\" field.\n" +
+		"  4. Translate the specific concept/word directly and precisely into English and Hindi (\"translationEnglish\" and \"translationHindi\" fields).\n" +
+		"  5. In the \"spiritualSignificance\" field, provide a rich, deep theological explanation of this specific concept, quoting or citing how it is used across the scripture(s), rather than pretending the word itself is a full verse.\n" +
+		"  6. In the \"wordBreakdown\" array, include exactly the breakdown of this single word (its root, conjugation/declension, prefix/suffix, meaning).\n" +
+		"  7. Set the \"poeticMeter\" to \"None / N/A\".\n\n" +
+		"- However, if the input is a genuine verse fragment or sloka lines (e.g., 'कर्मण्येवाधिकारस्ते...'):\n" +
+		"  1. Reconstruct and analyze the complete verse as expected.\n" +
+		"  2. Provide proper translations, spiritual significance, and full word-by-word breakdown for the whole verse.\n\n" +
+		"Always provide the response conforming strictly to the requested JSON structure.";
+
+	private const string USER_PROMPT_TRANSLATION_TEMPLATE =
+		"Translate the following text.\n" +
+		"Source Language: {0}\n" +
+		"Target Language: {1}\n" +
+		"Context: {2}\n" +
+		"{3}\n\n" +
+		"Text to translate:\n" +
+		"\"{4}\"\n\n" +
+		"Provide the translation, a word-by-word grammar and meaning breakdown (called Padapatha parsing, which splits sandhi compounds if source contains Sanskrit, or breakdown of words if not), and a philological/philosophical scriptural explanation.";
+
+	private const string USER_PROMPT_TRANSLITERATION_TEMPLATE =
+		"Convert (transliterate) the following text from the source script to the target script. \n" +
+		"Source Script: {0}\n" +
+		"Target Script: {1}\n\n" +
+		"Input Text:\n" +
+		"{2}\n\n" +
+		"For your diacritic markers (in IAST), be exceptionally precise (e.g. using dots below for retroflexes like ṣ, ṭ, ḍ, line above for long vowels like ā, ī, ū, and dot above for anusvara m, etc.). Preservation of line structures is required.";
+
+	private const string USER_PROMPT_SCRIPTURE_ANALYSIS_TEMPLATE =
+		"Analyze the following Hindu scripture/verse in deep detail:\n" +
+		"\"{0}\"\n" +
+		"{1}\n" +
+		"{2}\n\n" +
+		"Extract or compute:\n" +
+		"1. Identified scripture source (e.g. Bhagavad Gita chapter/verse, Veda mandala, Upanishad name).\n" +
+		"2. Clean IAST transliteration (with correct diacritics).\n" +
+		"3. Phonetic English transliteration (friendly for active chanting).\n" +
+		"4. English prose translation.\n" +
+		"5. Hindi prose translation.\n" +
+		"6. Spiritual/Theological significance & commentary.\n" +
+		"7. Word-by-word grammatical breakdown (declensions, root words, nouns/verbs, individual meanings).\n" +
+		"8. Poetic Meter name if applicable (e.g., Anustubh, Gayatri, Tristubh, Jagati etc.)";
+
+	#endregion
+
 	private readonly IChatClient? _chatClient;
 	private readonly ILocalDataSetsProvider _localDataSetsProvider;
 
-	public AIService(IChatClient? chatClient, ILocalDataSetsProvider localDataSetsProvider)
+	public SanskritScholarAIService(IChatClient? chatClient, ILocalDataSetsProvider localDataSetsProvider)
 	{
 		_chatClient = chatClient;
 		_localDataSetsProvider = localDataSetsProvider;
 	}
+
+	#region Public Methods (ISanskritScholarAIService)
+
+	public async Task<TranslationResponse> TranslateTextAsync(
+		string text,
+		string sourceLang,
+		string targetLang,
+		string? scriptureContext)
+	{
+		try
+		{
+			if (_chatClient == null)
+			{
+				throw new InvalidOperationException("IChatClient is not configured or setup.");
+			}
+
+			string contextPrompt = !string.IsNullOrEmpty(scriptureContext)
+				? $"The text is from {scriptureContext} or related Hindu scripture."
+				: string.Empty;
+
+			string dictHints = GetDictionaryHints(text);
+			string prompt = string.Format(
+				USER_PROMPT_TRANSLATION_TEMPLATE,
+				sourceLang,
+				targetLang,
+				contextPrompt,
+				dictHints,
+				text);
+
+			var options = new ChatOptions
+			{
+				ResponseFormat = ChatResponseFormat.Json,
+			};
+
+			var messages = new List<ChatMessage>
+			{
+				new(ChatRole.System, SYSTEM_PROMPT_TRANSLATION),
+				new(ChatRole.User, prompt)
+			};
+
+			var chatResponse = await _chatClient.CompleteAsync(messages, options);
+			string responseText = chatResponse.Message.Text ?? string.Empty;
+
+			var result = JsonSerializer.Deserialize<TranslationResponse>(responseText, new JsonSerializerOptions
+			{
+				PropertyNameCaseInsensitive = true
+			});
+
+			if (result == null)
+			{
+				throw new Exception("Unable to deserialize translation model from AI response.");
+			}
+
+			return result;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"[SanskritScholarAIService] TranslateTextAsync Failure fallback active: {ex.Message}");
+			return GenerateTranslateFallback(text, targetLang);
+		}
+	}
+
+	public async Task<TransliterateResponse> TransliterateTextAsync(
+		string text,
+		string sourceScript,
+		string targetScript)
+	{
+		try
+		{
+			if (_chatClient == null)
+			{
+				throw new InvalidOperationException("IChatClient is not configured.");
+			}
+
+			string prompt = string.Format(
+				USER_PROMPT_TRANSLITERATION_TEMPLATE,
+				sourceScript,
+				targetScript,
+				text);
+
+			var options = new ChatOptions
+			{
+				ResponseFormat = ChatResponseFormat.Json,
+			};
+
+			var messages = new List<ChatMessage>
+			{
+				new ChatMessage(ChatRole.System, SYSTEM_PROMPT_TRANSLITERATION),
+				new ChatMessage(ChatRole.User, prompt)
+			};
+
+			var chatResponse = await _chatClient.CompleteAsync(messages, options);
+			string responseText = chatResponse.Message.Text ?? string.Empty;
+
+			var result = JsonSerializer.Deserialize<TransliterateResponse>(responseText, new JsonSerializerOptions
+			{
+				PropertyNameCaseInsensitive = true
+			});
+
+			if (result == null)
+			{
+				throw new Exception("Unable to deserialize transliteration model from AI response.");
+			}
+
+			return result;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"[SanskritScholarAIService] TransliterateTextAsync Exception fallback active: {ex.Message}");
+			return GenerateTransliterateFallback(text, sourceScript, targetScript);
+		}
+	}
+
+	public async Task<ScriptureAnalyzeResponse> AnalyzeScriptureAsync(
+		string text,
+		string? sourceContext)
+	{
+		try
+		{
+			if (_chatClient == null)
+			{
+				throw new InvalidOperationException("IChatClient is not configured.");
+			}
+
+			string contextText = !string.IsNullOrEmpty(sourceContext)
+				? $"Contextual source hint: {sourceContext}"
+				: string.Empty;
+
+			string dictHints = GetDictionaryHints(text);
+			string prompt = string.Format(
+				USER_PROMPT_SCRIPTURE_ANALYSIS_TEMPLATE,
+				text,
+				contextText,
+				dictHints);
+
+			var options = new ChatOptions
+			{
+				ResponseFormat = ChatResponseFormat.Json,
+			};
+
+			var messages = new List<ChatMessage>
+			{
+				new ChatMessage(ChatRole.System, SYSTEM_PROMPT_SCRIPTURE_ANALYSIS),
+				new ChatMessage(ChatRole.User, prompt)
+			};
+
+			var chatResponse = await _chatClient.CompleteAsync(messages, options);
+			string responseText = chatResponse.Message.Text ?? string.Empty;
+
+			var result = JsonSerializer.Deserialize<ScriptureAnalyzeResponse>(responseText, new JsonSerializerOptions
+			{
+				PropertyNameCaseInsensitive = true
+			});
+
+			if (result == null)
+			{
+				throw new Exception("Unable to deserialize scripture analysis model from AI response.");
+			}
+
+			return result;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"[SanskritScholarAIService] AnalyzeScriptureAsync Failure fallback active: {ex.Message}");
+			return GenerateAnalyzeFallback(text);
+		}
+	}
+
+	#endregion
+
+	#region Private Helper Methods
 
 	private string GetDictionaryHints(string text)
 	{
@@ -179,77 +417,10 @@ public class AIService
 		return null;
 	}
 
-	public async Task<TranslationResponse> TranslateTextAsync(
-		string text,
-		string sourceLang,
-		string targetLang,
-		string? scriptureContext)
-	{
-		try
-		{
-			if (_chatClient == null)
-			{
-				throw new InvalidOperationException("IChatClient is not configured or setup.");
-			}
-
-			string contextPrompt = !string.IsNullOrEmpty(scriptureContext)
-				? $"The text is from {scriptureContext} or related Hindu scripture."
-				: string.Empty;
-
-			string dictHints = GetDictionaryHints(text);
-			string prompt = $@"Translate the following text.
-                                Source Language: {sourceLang}
-                                Target Language: {targetLang}
-                                Context: {contextPrompt}
-                                {dictHints}
-
-                                Text to translate:
-                                ""{text}""
-
-                                Provide the translation, a word-by-word grammar and meaning breakdown (called Padapatha parsing, which splits sandhi compounds if source contains Sanskrit, or breakdown of words if not), and a philological/philosophical scriptural explanation.";
-
-			string systemInstruction = @"You are an expert philologist, Indologist, and scriptural scholar specializing in Sanskrit scriptures (Vedas, Upanishads, Bhagavad Gita, Puranas, Ramayana) as well as Hindi and English scriptural commentaries.
-                                            Translate text precisely. When dealing with Sanskrit, respect the philosophical nuances and render exact meanings.
-                                            Provide the output strictly in the specified JSON structure.";
-
-			var options = new ChatOptions
-			{
-				ResponseFormat = ChatResponseFormat.Json,
-			};
-
-			var messages = new List<ChatMessage>
-			{
-				new(ChatRole.System, systemInstruction),
-				new(ChatRole.User, prompt)
-			};
-
-			var chatResponse = await _chatClient.CompleteAsync(messages, options);
-			string responseText = chatResponse.Message.Text ?? string.Empty;
-
-			var result = JsonSerializer.Deserialize<TranslationResponse>(responseText, new JsonSerializerOptions
-			{
-				PropertyNameCaseInsensitive = true
-			});
-
-			if (result == null)
-			{
-				throw new Exception("Unable to deserialize translation model from AI response.");
-			}
-
-			return result;
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"[AIService] TranslateTextAsync Failure fallback active: {ex.Message}");
-			return GenerateTranslateFallback(text, targetLang);
-		}
-	}
-
 	private TranslationResponse GenerateTranslateFallback(string text, string targetLang)
 	{
 		bool isHindi = targetLang.Equals("hindi", StringComparison.OrdinalIgnoreCase);
 
-		// Try Archive
 		var archiveMatch = TryMatchingScriptureArchive(text);
 		if (archiveMatch != null)
 		{
@@ -263,7 +434,6 @@ public class AIService
 			);
 		}
 
-		// Token list fallback
 		var tokens = text.Split(new[] { ' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries).Take(15);
 		var breakdown = tokens.Select(ParseGenericWordBreakdown).Where(b => b != null).Cast<WordBreakdownItem>().ToList();
 		string iastText = Transliterator.DevanagariToIast(text);
@@ -307,66 +477,6 @@ public class AIService
 		);
 	}
 
-	public async Task<TransliterateResponse> TransliterateTextAsync(
-		string text,
-		string sourceScript,
-		string targetScript)
-	{
-		try
-		{
-			if (_chatClient == null)
-			{
-				throw new InvalidOperationException("IChatClient is not configured.");
-			}
-
-			string prompt = $@"Convert (transliterate) the following text from the source script to the target script. 
-Source Script: {sourceScript}
-Target Script: {targetScript}
-
-Input Text:
-{text}
-
-For your diacritic markers (in IAST), be exceptionally precise (e.g. using dots below for retroflexes like ṣ, ṭ, ḍ, line above for long vowels like ā, ī, ū, and dot above for anusvara m, etc.). Preservation of line structures is required.";
-
-			string systemInstruction = @"You are a helper specializing in Indic script transliteration.
-Your goal is to transliterate characters purely phonetically/orthographically between Devanagari (देवानागरी), IAST (International Alphabet of Sanskrit Transliteration with diacritics), ITRANS (ASCII), SLP1 (Sanskrit Library Phonetic basic ASCII encoding standard), and English Phonetic (for chanting/singing).
-Do NOT translate the meaning, only convert the phonetic representation from one system to another.
-In SLP1, map retroflex consonants to w, W, q, Q, R, sibilants to S/z, nasals to N/Y/R/n/m, and vowels and anusvara according to Sanskrit Library SLP1 specs.
-Provide the output strictly in JSON.";
-
-			var options = new ChatOptions
-			{
-				ResponseFormat = ChatResponseFormat.Json,
-			};
-
-			var messages = new List<ChatMessage>
-			{
-				new ChatMessage(ChatRole.System, systemInstruction),
-				new ChatMessage(ChatRole.User, prompt)
-			};
-
-			var chatResponse = await _chatClient.CompleteAsync(messages, options);
-			string responseText = chatResponse.Message.Text ?? string.Empty;
-
-			var result = JsonSerializer.Deserialize<TransliterateResponse>(responseText, new JsonSerializerOptions
-			{
-				PropertyNameCaseInsensitive = true
-			});
-
-			if (result == null)
-			{
-				throw new Exception("Unable to deserialize transliteration model from AI response.");
-			}
-
-			return result;
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"[AIService] TransliterateTextAsync Exception fallback active: {ex.Message}");
-			return GenerateTransliterateFallback(text, sourceScript, targetScript);
-		}
-	}
-
 	private TransliterateResponse GenerateTransliterateFallback(string text, string sourceScript, string targetScript)
 	{
 		string outText = text;
@@ -401,92 +511,8 @@ Provide the output strictly in JSON.";
 		return new TransliterateResponse(sourceScript, targetScript, outText);
 	}
 
-	public async Task<ScriptureAnalyzeResponse> AnalyzeScriptureAsync(
-		string text,
-		string? sourceContext)
-	{
-		try
-		{
-			if (_chatClient == null)
-			{
-				throw new InvalidOperationException("IChatClient is not configured.");
-			}
-
-			string contextText = !string.IsNullOrEmpty(sourceContext)
-				? $"Contextual source hint: {sourceContext}"
-				: string.Empty;
-
-			string dictHints = GetDictionaryHints(text);
-			string prompt = $@"Analyze the following Hindu scripture/verse in deep detail:
-""{text}""
-{contextText}
-{dictHints}
-
-Extract or compute:
-1. Identified scripture source (e.g. Bhagavad Gita chapter/verse, Veda mandala, Upanishad name).
-2. Clean IAST transliteration (with correct diacritics).
-3. Phonetic English transliteration (friendly for active chanting).
-4. English prose translation.
-5. Hindi prose translation.
-6. Spiritual/Theological significance & commentary.
-7. Word-by-word grammatical breakdown (declensions, root words, nouns/verbs, individual meanings).
-8. Poetic Meter name if applicable (e.g., Anustubh, Gayatri, Tristubh, Jagati etc.)";
-
-			string systemInstruction = @"You are a high-level Sanatana Dharma and Sanskrit scripture scholar.
-Analyze the provided Sanskrit/Hindi/English scripture.
-
-CRITICAL WORD VS VERSE CONSTRAINTS:
-- If the input text is a single word, a small compound, or a short theological/philosophical term (typically 1 to 3 words, e.g., 'योगः', 'ज्ञानम्', 'कर्म', 'आत्मनः') rather than an actual complete scripture verse or a clear multi-word verse fragment:
-  1. Do NOT try to reconstruct a completely different verse or return translations/commentary of an unrelated longer scripture (for example, do NOT reconstruct and return BG 2.48 'samatvaṁ yoga ucyate...' if the user only entered the single term 'योगः').
-  2. Keep the ""verse"" field equal to the input word itself (or its clean Devanagari form if transliterated).
-  3. Treat the input as a single theological/intellectual concept or keyword. Refer to its context/source if provided (e.g. 'Gita' or 'Vedas'), identifying it as a 'Scriptural Concept' or 'Key Term' in the ""identifiedSource"" field.
-  4. Translate the specific concept/word directly and precisely into English and Hindi (""translationEnglish"" and ""translationHindi"" fields).
-  5. In the ""spiritualSignificance"" field, provide a rich, deep theological explanation of this specific concept, quoting or citing how it is used across the scripture(s), rather than pretending the word itself is a full verse.
-  6. In the ""wordBreakdown"" array, include exactly the breakdown of this single word (its root, conjugation/declension, prefix/suffix, meaning).
-  7. Set the ""poeticMeter"" to ""None / N/A"".
-
-- However, if the input is a genuine verse fragment or sloka lines (e.g., 'कर्मण्येवाधिकारस्ते...'):
-  1. Reconstruct and analyze the complete verse as expected.
-  2. Provide proper translations, spiritual significance, and full word-by-word breakdown for the whole verse.
-  
-Always provide the response conforming strictly to the requested JSON structure.";
-
-			var options = new ChatOptions
-			{
-				ResponseFormat = ChatResponseFormat.Json,
-			};
-
-			var messages = new List<ChatMessage>
-			{
-				new ChatMessage(ChatRole.System, systemInstruction),
-				new ChatMessage(ChatRole.User, prompt)
-			};
-
-			var chatResponse = await _chatClient.CompleteAsync(messages, options);
-			string responseText = chatResponse.Message.Text ?? string.Empty;
-
-			var result = JsonSerializer.Deserialize<ScriptureAnalyzeResponse>(responseText, new JsonSerializerOptions
-			{
-				PropertyNameCaseInsensitive = true
-			});
-
-			if (result == null)
-			{
-				throw new Exception("Unable to deserialize scripture analysis model from AI response.");
-			}
-
-			return result;
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"[AIService] AnalyzeScriptureAsync Failure fallback active: {ex.Message}");
-			return GenerateAnalyzeFallback(text);
-		}
-	}
-
 	private ScriptureAnalyzeResponse GenerateAnalyzeFallback(string text)
 	{
-		// Try Archive matches first
 		var archiveMatch = TryMatchingScriptureArchive(text);
 		if (archiveMatch != null)
 		{
@@ -515,4 +541,6 @@ Always provide the response conforming strictly to the requested JSON structure.
 			IsFallback: true
 		);
 	}
+
+	#endregion
 }
